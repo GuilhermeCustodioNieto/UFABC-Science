@@ -1,0 +1,110 @@
+{
+  "version": "rules-v2",
+  "description": "Regras determinísticas iniciais por editoria. Termos 'strong' são específicos da área; 'weak' só contam quando somados a outras evidências. Um '*' final aceita sufixos (neuron* -> neuronal, neurons). A comparação ignora maiúsculas e acentos. 'source_categories' compara de forma exata com palavras-chave e categorias fornecidas pelas fontes (arXiv, MeSH, OpenAlex).",
+  "field_weights": {"title": 2.0, "keywords": 1.5, "abstract": 1.0},
+  "term_weights": {"strong": 3.0, "weak": 1.0, "source_category": 4.0},
+  "saturation": 9.0,
+  "min_strong_evidence": 1,
+  "relative_threshold": 0.6,
+  "max_categories": 3,
+  "categories": {
+    "neurociencia": {
+      "strong": [
+        "neuroscience*", "neurosciences", "neural circuit*", "neurobiolog*", "neuroimaging",
+        "synaptic", "synapse*", "neuron*", "cognitive neuroscience", "cortex", "cortical",
+        "hippocamp*", "neurodegenerat*", "neuroplasticity", "electroencephalograph*", "eeg",
+        "fmri", "brain-computer interface*", "neurotechnolog*", "neurotransmitter*",
+        "alzheimer*", "parkinson*", "neurociencia*", "neuronio*", "sinap*", "cognicao",
+        "cerebral cortex", "glia*", "astrocyte*", "dopamin*", "neuropsycholog*"
+      ],
+      "weak": [
+        "brain*", "cognition", "cognitive", "behavior*", "behaviour*", "memory", "perception",
+        "attention", "cerebro", "comportamento", "neural"
+      ],
+      "source_categories": [
+        "q-bio.NC", "Neurosciences", "Neuroscience", "Cognitive Neuroscience",
+        "Cellular and Molecular Neuroscience", "Neurology", "Brain", "Cognition",
+        "Behavioral Neuroscience", "Neurons"
+      ]
+    },
+    "computacao-e-tecnologia": {
+      "strong": [
+        "artificial intelligence", "machine learning", "deep learning", "neural network*",
+        "large language model*", "language model*", "llm*", "transformer model*",
+        "computer science", "software engineering", "cybersecurity", "computer security",
+        "natural language processing", "computer vision", "algorithm*", "reinforcement learning",
+        "quantum computing", "quantum algorithm*", "data science", "distributed system*",
+        "cryptograph*", "inteligencia artificial", "aprendizado de maquina", "benchmark*",
+        "graph neural network*", "federated learning", "generative model*", "explainable ai"
+      ],
+      "weak": [
+        "software", "dataset*", "computational", "automat*", "network*",
+        "computacao", "digital"
+      ],
+      "source_categories": [
+        "cs.AI", "cs.LG", "cs.CL", "cs.CV", "cs.RO", "cs.CR", "cs.SE", "cs.DS", "cs.NE",
+        "stat.ML", "Computer Science", "Artificial Intelligence", "Machine Learning",
+        "Computer Vision and Pattern Recognition", "Software", "Information Systems",
+        "Computer Networks and Communications", "Human-Computer Interaction"
+      ]
+    },
+    "engenharias": {
+      "strong": [
+        "engineering", "robotic*", "robot*", "materials engineering", "mechanical engineering",
+        "aerospace", "electrical engineering", "civil engineering", "biomedical engineering",
+        "chemical engineering", "control system*", "actuator*", "manufactur*", "battery",
+        "batteries", "power grid*", "renewable energy", "photovoltaic*", "semiconductor*",
+        "circuit*", "composite material*", "alloy*", "engenharia*", "robotica", "energia renovavel",
+        "kinematic*", "surgical robot*", "finite element*"
+      ],
+      "weak": [
+        "design", "prototype*", "sensor*", "device*", "energy", "material*", "industrial",
+        "fabrication", "energia", "dispositivo*"
+      ],
+      "source_categories": [
+        "cs.RO", "eess.SY", "eess.SP", "physics.app-ph", "cond-mat.mtrl-sci", "Engineering",
+        "Mechanical Engineering", "Electrical and Electronic Engineering", "Biomedical Engineering",
+        "Aerospace Engineering", "Materials Science", "Control and Systems Engineering",
+        "Industrial and Manufacturing Engineering", "Bioengineering", "Civil and Structural Engineering"
+      ]
+    },
+    "ciencias-biologicas": {
+      "strong": [
+        "molecular biology", "genetic*", "genomic*", "genome*", "microbiolog*", "microbiome*",
+        "biotechnolog*", "ecolog*", "evolution*", "cell biology", "gene expression", "protein*",
+        "transcriptom*", "crispr", "bacteria*", "bacterial", "virus*", "viral", "immun*",
+        "dna", "rna", "enzyme*", "metabol*", "species", "biodiversity", "phylogen*",
+        "biologia*", "genetica", "ecologia", "evolucao", "celula*", "macrophage*"
+      ],
+      "weak": [
+        "cell*", "tissue*", "organism*", "mouse", "mice", "plant*", "animal*", "clinical",
+        "patient*", "disease*", "biological"
+      ],
+      "source_categories": [
+        "q-bio.GN", "q-bio.BM", "q-bio.PE", "q-bio.MN", "q-bio.CB", "Genetics", "Genomics",
+        "Molecular Biology", "Microbiology", "Biotechnology", "Ecology", "Cell Biology",
+        "Biochemistry", "Immunology", "Evolution", "Biology", "Ecology, Evolution, Behavior and Systematics",
+        "Agricultural and Biological Sciences", "Biochemistry, Genetics and Molecular Biology"
+      ]
+    },
+    "ciencias-e-stem": {
+      "strong": [
+        "physics", "quantum", "chemistry", "chemical", "mathematic*", "theorem*", "astronom*",
+        "astrophysic*", "cosmolog*", "galax*", "exoplanet*", "environmental science", "climate",
+        "particle physics", "condensed matter", "thermodynamic*", "spectroscop*", "optic*",
+        "photon*", "statistic*", "computational science", "fisica", "quimica", "matematica",
+        "astronomia", "clima", "differential equation*", "topolog*"
+      ],
+      "weak": [
+        "simulation*", "theoretical", "equation*", "measurement*", "environment*",
+        "simulacao"
+      ],
+      "source_categories": [
+        "quant-ph", "physics.optics", "physics.chem-ph", "astro-ph.EP", "astro-ph.GA",
+        "astro-ph.CO", "math.OC", "math.NA", "math.PR", "cond-mat.stat-mech", "hep-ph", "gr-qc",
+        "Physics and Astronomy", "Chemistry", "Mathematics", "Astronomy and Astrophysics",
+        "Environmental Science", "Statistics", "Earth and Planetary Sciences"
+      ]
+    }
+  }
+}

@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="{% block description %}Curadoria independente de pesquisas científicas recentes para a comunidade da UFABC.{% endblock %}">
+  {% if preview %}<meta name="robots" content="noindex, nofollow">{% endif %}
+  <title>{% block title %}UFABC Science{% endblock %}</title>
+  <link rel="stylesheet" href="{{ root }}assets/css/style.css">
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+  {% if preview %}
+  <div class="preview-banner" role="status">Pré-visualização local — esta edição não foi publicada.</div>
+  {% endif %}
+  {% include "components/header.html" %}
+  <main id="conteudo" class="container">
+    {% block content %}{% endblock %}
+  </main>
+  {% include "components/footer.html" %}
+  <script src="{{ root }}assets/js/main.js" defer></script>
+</body>
+</html>

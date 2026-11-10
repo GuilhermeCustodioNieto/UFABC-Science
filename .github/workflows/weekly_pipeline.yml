@@ -1,0 +1,131 @@
+# Coleta e processamento semanal. NUNCA aprova nem publica conteúdo.
+# Agendamento: segundas-feiras às 11:00 UTC = 08:00 em America/Sao_Paulo (UTC-3).
+# O Brasil não adota horário de verão desde 2019; se voltar a adotar, a execução
+# ocorrerá às 09:00 locais nesse período (ver docs/AUTOMATION_GUIDE.md).
+name: Pipeline semanal
+
+on:
+  schedule:
+    - cron: "0 11 * * 1"
+  workflow_dispatch:
+    inputs:
+      days:
+        description: "Período de coleta em dias (vazio = COLLECTION_DAYS)"
+        required: false
+        default: ""
+      sources:
+        description: "Fontes separadas por vírgula (vazio = todas habilitadas)"
+        required: false
+        default: ""
+      max_articles:
+        description: "Máximo de artigos por fonte (vazio = MAX_ARTICLES_PER_SOURCE)"
+        required: false
+        default: ""
+      generation_limit:
+        description: "Máximo de rascunhos gerados (vazio = GENERATION_LIMIT)"
+        required: false
+        default: ""
+      steps:
+        description: "Etapas a executar"
+        required: true
+        default: "auto"
+        type: choice
+        options:
+          - auto
+          - all
+          - collect,enrich
+          - classify,score
+          - process
+
+# Escrita é necessária apenas para atualizar a branch de dados ("data").
+# Nenhuma permissão de Pages, issues ou pull requests é concedida.
+permissions:
+  contents: write
+
+concurrency:
+  group: ufabc-science-data
+  cancel-in-progress: false
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      APP_ENV: production
+      LOG_LEVEL: INFO
+      DATA_DIR: persist/data
+      EDITIONS_DIR: persist/editions
+      DATABASE_URL: sqlite:///persist/data/database/ufabc_science.db
+      CONTACT_EMAIL: ${{ vars.CONTACT_EMAIL }}
+      ENABLED_SOURCES: ${{ vars.ENABLED_SOURCES || 'openalex,pubmed,arxiv,crossref' }}
+      AI_PROVIDER: ${{ vars.AI_PROVIDER || 'mock' }}
+      AI_MODEL: ${{ vars.AI_MODEL }}
+      AI_BASE_URL: ${{ vars.AI_BASE_URL }}
+      AI_API_KEY: ${{ secrets.AI_API_KEY }}
+      OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}
+      NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
+      INPUT_DAYS: ${{ inputs.days }}
+      INPUT_SOURCES: ${{ inputs.sources }}
+      INPUT_MAX_ARTICLES: ${{ inputs.max_articles }}
+      INPUT_GENERATION_LIMIT: ${{ inputs.generation_limit }}
+      INPUT_STEPS: ${{ inputs.steps || 'auto' }}
+    steps:
+      - name: Código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+
+      - name: Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Dependências
+        run: python -m pip install .
+
+      - name: Recuperar dados persistentes
+        run: bash scripts/data_branch.sh fetch persist
+
+      - name: Validar configuração
+        run: python -m ufabc_science config check
+
+      - name: Banco de dados
+        run: python -m ufabc_science init-db
+
+      - name: Executar pipeline (sem aprovação nem publicação)
+        id: run
+        shell: bash
+        run: |
+          set -euo pipefail
+          steps="$INPUT_STEPS"
+          if [ "$steps" = "auto" ]; then
+            # Rascunhos só são gerados quando há um provedor de IA real configurado.
+            if [ "$AI_PROVIDER" = "mock" ]; then steps="collect,enrich,classify,score"; else steps="all"; fi
+          fi
+          args=(--trigger "${GITHUB_EVENT_NAME}" --steps "$steps")
+          [ -n "$INPUT_DAYS" ] && args+=(--days "$INPUT_DAYS")
+          [ -n "$INPUT_SOURCES" ] && args+=(--sources "$INPUT_SOURCES")
+          [ -n "$INPUT_MAX_ARTICLES" ] && args+=(--max-articles "$INPUT_MAX_ARTICLES")
+          [ -n "$INPUT_GENERATION_LIMIT" ] && args+=(--limit "$INPUT_GENERATION_LIMIT")
+          python -m ufabc_science run "${args[@]}"
+
+      - name: Persistir dados na branch "data"
+        if: ${{ !cancelled() }}
+        env:
+          RUN_LABEL: "${{ github.run_id }} (${{ github.event_name }})"
+        run: |
+          bash scripts/data_branch.sh commit persist "data: execução $RUN_LABEL"
+
+      - name: Artefatos da execução (14 dias)
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: execucao-${{ github.run_id }}
+          retention-days: 14
+          if-no-files-found: ignore
+          path: |
+            persist/data/runs/
+            persist/data/editorial/pending/
+            persist/data/raw/

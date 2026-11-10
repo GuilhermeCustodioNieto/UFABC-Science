@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+  <h1>Ciência recente, explicada com cuidado.</h1>
+  <p class="lead">O UFABC Science seleciona pesquisas recentes em neurociência, computação, engenharias, ciências biológicas e STEM e as apresenta em português para estudantes, pesquisadores e professores da comunidade UFABC.</p>
+  <p class="hero-note">Iniciativa independente. Cada texto é revisado por uma pessoa antes da publicação e indica claramente quando um trabalho ainda não passou por revisão por pares.</p>
+</section>
+
+{% if latest %}
+<section class="latest" aria-labelledby="ultima-edicao">
+  <p class="eyebrow">Edição mais recente</p>
+  <h2 id="ultima-edicao"><a href="{{ root }}editions/{{ latest.slug }}/index.html">{{ latest.title }}</a></h2>
+  <p class="edition-period">Período de referência: {{ latest.period }}{% if latest.published %} · publicada em {{ latest.published }}{% endif %}</p>
+  {% if latest.articles %}
+  <h3 class="section-title">Destaques</h3>
+  <div class="cards">
+    {% for article in latest.articles[:3] %}{% include "components/article_card.html" %}{% endfor %}
+  </div>
+  {% endif %}
+  <p><a class="button" href="{{ root }}editions/{{ latest.slug }}/index.html">Ler a edição completa</a></p>
+</section>
+{% else %}
+<section class="empty">
+  <p>Nenhuma edição publicada ainda.</p>
+</section>
+{% endif %}
+
+<section aria-labelledby="editorias">
+  <h2 id="editorias" class="section-title">Editorias</h2>
+  <ul class="categories">
+    {% for slug, name in categories %}<li class="tag tag-{{ slug }}">{{ name }}</li>{% endfor %}
+  </ul>
+  <p><a href="{{ root }}archive/index.html">Ver todas as edições →</a></p>
+</section>
+{% endblock %}

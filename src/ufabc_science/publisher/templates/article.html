@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}{{ article.headline }} · UFABC Science{% endblock %}
+{% block content %}
+<article class="article">
+  <header class="article-header">
+    <p class="card-meta">
+      <span class="tag">{{ article.primary_category_name }}</span>
+      {% for name in article.secondary_categories %}<span class="tag tag-secondary">{{ name }}</span>{% endfor %}
+    </p>
+    <h1>{{ article.headline }}</h1>
+    <p class="article-original"><span class="label">Título original:</span> <cite>{{ article.original_title }}</cite></p>
+    <p class="review-status{% if article.is_preprint %} review-preprint{% endif %}">{{ article.peer_review_label }}</p>
+    {% if article.is_preprint %}
+    <p class="notice">Este trabalho é um <strong>preprint</strong>: ainda não passou por revisão por pares e seus resultados podem mudar.</p>
+    {% endif %}
+    <dl class="facts">
+      {% if article.authors %}<div><dt>Autoria</dt><dd>{{ article.authors | join(", ") }}</dd></div>{% endif %}
+      {% if article.journal %}<div><dt>Publicação</dt><dd>{{ article.journal }}</dd></div>{% endif %}
+      {% if article.publication_date %}<div><dt>Data</dt><dd><time>{{ article.publication_date }}</time></dd></div>{% endif %}
+      {% if article.doi %}<div><dt>DOI</dt><dd><a href="{{ article.doi_url }}" rel="noopener noreferrer nofollow">{{ article.doi }}</a></dd></div>{% endif %}
+    </dl>
+  </header>
+  <div class="prose">
+    {% for title, html in article.sections %}
+    <section>
+      <h2>{{ title }}</h2>
+      {{ html }}
+    </section>
+    {% endfor %}
+    <section class="reference">
+      <h2>Referência</h2>
+      <p>{{ article.reference }}</p>
+      {% if article.source_url %}<p><a class="button" href="{{ article.source_url }}" rel="noopener noreferrer nofollow">Consultar pesquisa original</a></p>{% endif %}
+    </section>
+  </div>
+  {% if article.edition_slug %}
+  <p class="back"><a href="{{ root }}editions/{{ article.edition_slug }}/index.html">← Voltar à edição</a></p>
+  {% endif %}
+</article>
+{% endblock %}

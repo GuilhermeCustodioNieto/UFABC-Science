@@ -1,0 +1,18 @@
+<article class="card">
+  <p class="card-meta">
+    {% if not (in_section | default(false)) %}<span class="tag">{{ article.primary_category_name }}</span>{% endif %}
+    {% if article.is_preprint %}<span class="badge badge-preprint">Preprint</span>{% endif %}
+  </p>
+  <h3 class="card-title"><a href="{{ root }}{{ article.path }}">{{ article.headline }}</a></h3>
+  <p class="card-original"><span class="label">Título original:</span> <cite>{{ article.original_title }}</cite></p>
+  <div class="card-summary">{{ article.summary }}</div>
+  <p class="card-source">
+    {% if article.authors %}{{ article.authors[:3] | join(", ") }}{% if article.authors | length > 3 %} et al.{% endif %}{% endif %}
+    {% if article.journal %} · <em>{{ article.journal }}</em>{% endif %}
+    {% if article.publication_date %} · <time>{{ article.publication_date }}</time>{% endif %}
+  </p>
+  <p class="card-links">
+    <a href="{{ root }}{{ article.path }}">Ler síntese</a>
+    {% if article.source_url %} · <a href="{{ article.source_url }}" rel="noopener noreferrer nofollow">Pesquisa original</a>{% endif %}
+  </p>
+</article>

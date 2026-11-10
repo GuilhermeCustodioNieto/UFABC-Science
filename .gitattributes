@@ -1,0 +1,7 @@
+# Scripts executados por bash e workflows precisam de LF mesmo em clones no Windows
+# (core.autocrlf=true converteria para CRLF e o bash falharia).
+*.sh   text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+# Banco SQLite versionado na branch "data".
+*.db   binary

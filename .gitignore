@@ -218,3 +218,24 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --- UFABC Science ---
+# O estado persistente (banco, Markdown editorial, edicoes, relatorios) vive na
+# branch "data" (docs/PERSISTENCE_STRATEGY.md). Na branch principal, apenas a
+# estrutura de diretorios e versionada.
+data/database/*
+data/raw/*
+data/exports/*
+data/runs/
+data/editorial/pending/*
+data/editorial/approved/*
+data/editorial/rejected/*
+data/editorial/history/
+editions/drafts/*
+editions/published/*
+!data/**/.gitkeep
+!editions/**/.gitkeep
+# Worktree da branch de dados e saidas geradas
+persist/
+build/
+dist/

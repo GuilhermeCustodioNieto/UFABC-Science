@@ -1,0 +1,99 @@
+# Publicação no GitHub Pages. Executado SOMENTE por ação manual explícita.
+# Pré-requisito: a edição já foi publicada editorialmente com
+#   python -m ufabc_science edition publish --edition N --by "Nome" --confirm
+# e a branch "data" foi atualizada. Este workflow apenas revalida e implanta o HTML.
+name: Publicar no GitHub Pages
+
+on:
+  workflow_dispatch:
+    inputs:
+      edition:
+        description: "Número da edição a publicar (ex.: 1)"
+        required: true
+      confirm:
+        description: 'Confirmação: digite exatamente "PUBLICAR edicao-NNN" (ex.: PUBLICAR edicao-001)'
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    env:
+      DATA_DIR: persist/data
+      EDITIONS_DIR: persist/editions
+      DATABASE_URL: sqlite:///persist/data/database/ufabc_science.db
+      OUTPUT_DIR: dist
+      INPUT_EDITION: ${{ inputs.edition }}
+      INPUT_CONFIRM: ${{ inputs.confirm }}
+    steps:
+      - name: Verificar confirmação explícita
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! [[ "$INPUT_EDITION" =~ ^[0-9]{1,4}$ ]]; then
+            echo "::error::Número de edição inválido."; exit 1
+          fi
+          expected="PUBLICAR edicao-$(printf '%03d' "$((10#$INPUT_EDITION))")"
+          if [ "$INPUT_CONFIRM" != "$expected" ]; then
+            echo "::error::Confirmação incorreta. Digite exatamente: $expected"; exit 1
+          fi
+          if [ "$GITHUB_REF" != "refs/heads/main" ]; then
+            echo "::error::Publique somente a partir da branch main."; exit 1
+          fi
+
+      - name: Código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Dados editoriais (somente leitura)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: data
+          path: persist
+          persist-credentials: false
+
+      - name: Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Dependências
+        run: python -m pip install .
+
+      - name: Revalidar edição e gerar site (somente edições publicadas)
+        run: python -m ufabc_science site build --require-edition "$INPUT_EDITION" --strict
+
+      - name: Configurar Pages
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+      - name: Enviar site
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Implantar
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

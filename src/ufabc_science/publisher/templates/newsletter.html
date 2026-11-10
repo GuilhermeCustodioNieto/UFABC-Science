@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}{{ edition.title }} · UFABC Science{% endblock %}
+{% block content %}
+<article class="edition">
+  <header class="edition-header">
+    <p class="eyebrow">Edição {{ "%03d" | format(edition.number) }}</p>
+    <h1>{{ edition.title }}</h1>
+    <p class="edition-period">Período de referência: {{ edition.period }}{% if edition.published %} · publicada em <time>{{ edition.published }}</time>{% endif %}</p>
+  </header>
+  {% if preview and edition.blocked %}
+  <aside class="notice" role="note">
+    <strong>Itens bloqueados nesta pré-visualização:</strong>
+    <ul>{% for item in edition.blocked %}<li>{{ item }}</li>{% endfor %}</ul>
+  </aside>
+  {% endif %}
+  {% if edition.introduction %}<div class="edition-intro prose">{{ edition.introduction }}</div>{% endif %}
+  {% for slug, name, articles in edition.groups %}
+  <section class="edition-section" aria-labelledby="secao-{{ slug }}">
+    <h2 id="secao-{{ slug }}" class="section-title">{{ name }}</h2>
+    <div class="cards">
+      {% set in_section = true %}
+      {% for article in articles %}{% include "components/article_card.html" %}{% endfor %}
+    </div>
+  </section>
+  {% endfor %}
+</article>
+{% endblock %}

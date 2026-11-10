@@ -1,0 +1,68 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ufabc-science"
+version = "0.1.0"
+description = "Curadoria e divulgação científica automatizada para a comunidade UFABC."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.10"
+authors = [{ name = "Guilherme Custódio Nieto" }]
+dependencies = [
+    "sqlalchemy>=2.0,<3",
+    "alembic>=1.13,<2",
+    "pydantic>=2.6,<3",
+    "pydantic-settings>=2.2,<3",
+    "tzdata>=2024.1",  # base IANA de fusos horários (ausente no Windows)
+    "httpx>=0.27,<1",  # chamadas às APIs científicas e ao provedor de IA
+    "feedparser>=6.0,<7",  # Atom do arXiv
+    "jinja2>=3.1,<4",  # templates HTML
+    "python-frontmatter>=1.1,<2",  # front matter YAML dos arquivos editoriais
+    "pyyaml>=6.0,<7",
+    "markdown>=3.6,<4",  # Markdown editorial -> HTML
+    "nh3>=0.2.17,<1",  # sanitização do HTML gerado a partir do Markdown
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8,<9",
+    "ruff>=0.6",
+]
+
+[project.scripts]
+ufabc-science = "ufabc_science.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+ufabc_science = [
+    "infrastructure/migrations/*.py",
+    "infrastructure/migrations/*.mako",
+    "infrastructure/migrations/versions/*.py",
+    "publisher/templates/*.html",
+    "publisher/templates/components/*.html",
+    "publisher/assets/css/*.css",
+    "publisher/assets/js/*.js",
+    "processing/rules/*.json",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src", "tests"]
+# A especificação é um documento do autor; não deve ser reformatada.
+extend-exclude = ["docs/SPECIFICATION.md", "docs/etapa*.md"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "N", "RUF"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["ufabc_science"]

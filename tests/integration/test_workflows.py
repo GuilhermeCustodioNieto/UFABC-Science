@@ -95,13 +95,12 @@ def test_weekly_newsletter_runs_after_deploy_and_only_for_new_editions() -> None
     for condition in (
         "needs.deploy.result == 'success'",
         "needs.pipeline.outputs.published == 'true'",
-        "vars.BREVO_LIST_ID != ''",
     ):
         assert condition in job["if"]
     assert job["permissions"] == {"contents": "write"}
-    assert job["env"]["BREVO_API_KEY"] == "${{ secrets.BREVO_API_KEY }}"
-    commands = [step.get("run", "") for step in job["steps"]]
-    assert any(c.strip() == "python -m ufabc_science newsletter send" for c in commands)
+    assert job["env"]["KIT_API_KEY"] == "${{ secrets.KIT_API_KEY }}"
+    commands = [step.get("run", "").strip() for step in job["steps"]]
+    assert "python -m ufabc_science newsletter send --skip-if-unconfigured" in commands
     assert any("data_branch.sh commit" in c for c in commands)  # registra o envio único
     outputs = workflow["jobs"]["pipeline"]["outputs"]
     assert outputs["published"] == "${{ steps.autopublish.outputs.published }}"
@@ -114,8 +113,8 @@ def test_manual_newsletter_test_mode_and_confirmed_full_send() -> None:
     assert inputs["mode"]["default"] == "teste"
     assert inputs["mode"]["options"] == ["teste", "assinantes"]
     job = workflow["jobs"]["send"]
-    # O endereço de teste é um secret (não aparece em entradas nem em logs públicos).
-    assert job["env"]["NEWSLETTER_TEST_EMAIL"] == "${{ secrets.NEWSLETTER_TEST_EMAIL }}"
+    assert job["env"]["KIT_API_KEY"] == "${{ secrets.KIT_API_KEY }}"
+    assert job["env"]["KIT_TEST_TAG_ID"] == "${{ vars.KIT_TEST_TAG_ID }}"
     script = next(s["run"] for s in job["steps"] if s.get("name") == "Enviar")
     assert "newsletter send --test" in script
     assert 'expected="ENVIAR edicao-' in script

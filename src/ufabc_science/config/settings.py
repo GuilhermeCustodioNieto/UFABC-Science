@@ -88,14 +88,12 @@ class Settings(BaseSettings):
     auto_publish: bool = False
     auto_publish_max_articles: int = Field(default=10, ge=1, le=100)
 
-    # --- Newsletter por e-mail (Brevo) e site -----------------------------------------
+    # --- Newsletter por e-mail (Kit) e site -------------------------------------------
     site_url: str | None = None  # ex.: https://usuario.github.io/repositorio/
-    subscribe_url: str | None = None  # formulário de inscrição hospedado pelo Brevo
-    brevo_api_key: SecretStr | None = None
-    brevo_list_id: int | None = Field(default=None, ge=1)
-    newsletter_sender_email: str | None = None  # padrão: CONTACT_EMAIL
-    newsletter_sender_name: str = "UFABC Science"
-    newsletter_test_email: str | None = None
+    subscribe_url: str | None = None  # formulário/página de inscrição hospedada pelo Kit
+    kit_api_key: SecretStr | None = None
+    kit_test_tag_id: int | None = Field(default=None, ge=1)  # assinantes que recebem testes
+    newsletter_sender_email: str | None = None  # padrão: remetente da conta Kit
 
     # --- Validadores -------------------------------------------------------------------
 
@@ -116,10 +114,9 @@ class Settings(BaseSettings):
         "generation_word_limits",
         "site_url",
         "subscribe_url",
-        "brevo_api_key",
-        "brevo_list_id",
+        "kit_api_key",
+        "kit_test_tag_id",
         "newsletter_sender_email",
-        "newsletter_test_email",
         mode="before",
     )
     @classmethod
@@ -219,10 +216,6 @@ class Settings(BaseSettings):
     @property
     def openalex_contact(self) -> str | None:
         return self.openalex_email or self.contact_email
-
-    @property
-    def sender_email(self) -> str | None:
-        return self.newsletter_sender_email or self.contact_email
 
     @property
     def raw_dir(self) -> Path:

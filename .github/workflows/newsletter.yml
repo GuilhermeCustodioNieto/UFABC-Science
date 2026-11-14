@@ -1,7 +1,7 @@
-# Envio manual da newsletter por e-mail (Brevo). Executado SOMENTE por ação manual.
-# - teste: envia a edição publicada mais recente (ou a informada) só para o secret
-#   NEWSLETTER_TEST_EMAIL. Não usa a lista de assinantes e não registra envio.
-# - assinantes: envia para a lista BREVO_LIST_ID (uma única vez por edição); exige a
+# Envio manual da newsletter por e-mail (Kit). Executado SOMENTE por ação manual.
+# - teste: envia a edição publicada mais recente (ou a informada) só aos assinantes com a
+#   tag KIT_TEST_TAG_ID. Não registra envio.
+# - assinantes: envia a todos os assinantes (uma única vez por edição); exige a
 #   confirmação "ENVIAR edicao-NNN". Útil se o envio automático de segunda falhar.
 name: Enviar newsletter
 
@@ -40,11 +40,9 @@ jobs:
       DATA_DIR: persist/data
       EDITIONS_DIR: persist/editions
       DATABASE_URL: sqlite:///persist/data/database/ufabc_science.db
-      CONTACT_EMAIL: ${{ vars.CONTACT_EMAIL }}
       NEWSLETTER_SENDER_EMAIL: ${{ vars.NEWSLETTER_SENDER_EMAIL }}
-      BREVO_LIST_ID: ${{ vars.BREVO_LIST_ID }}
-      BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
-      NEWSLETTER_TEST_EMAIL: ${{ secrets.NEWSLETTER_TEST_EMAIL }}
+      KIT_API_KEY: ${{ secrets.KIT_API_KEY }}
+      KIT_TEST_TAG_ID: ${{ vars.KIT_TEST_TAG_ID }}
       SITE_URL: ${{ vars.SITE_URL || format('https://{0}.github.io/{1}/', github.repository_owner, github.event.repository.name) }}
       INPUT_MODE: ${{ inputs.mode }}
       INPUT_EDITION: ${{ inputs.edition }}

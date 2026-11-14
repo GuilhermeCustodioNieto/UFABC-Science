@@ -1,1 +1,1 @@
-"""Envio da newsletter por e-mail (Brevo)."""
+"""Envio da newsletter por e-mail (Kit)."""

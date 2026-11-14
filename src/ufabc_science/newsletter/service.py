@@ -1,9 +1,9 @@
-"""Renderização e envio da edição publicada por e-mail.
+"""Renderização e envio da edição publicada por e-mail (Kit).
 
 * Só edições ``PUBLISHED``/``ARCHIVED`` são enviadas, com o mesmo texto aprovado do site.
 * Cada edição é enviada aos assinantes **uma única vez**: o envio grava
-  ``editions/sent/<slug>.json`` (persistido na branch ``data``). Envios de teste não
-  gravam marca e não usam a lista.
+  ``editions/sent/<slug>.json`` (persistido na branch ``data``). Envios de teste vão só para
+  os assinantes com a tag ``KIT_TEST_TAG_ID`` e não gravam marca.
 * Os links apontam para o site público (``SITE_URL``).
 """
 
@@ -24,7 +24,7 @@ from ufabc_science.domain.models import NewsletterEdition, utcnow
 from ufabc_science.editorial.autopublish import is_automatic
 from ufabc_science.editorial.edition import get_edition
 from ufabc_science.editorial.markdown import safe_child, write_text_atomic
-from ufabc_science.newsletter.brevo import UNSUBSCRIBE_TAG, BrevoClient, NewsletterError
+from ufabc_science.newsletter.kit import KitClient, NewsletterError
 from ufabc_science.publisher.html import AI_NOTICE, DISCLAIMER, _edition_view, _environment
 
 PUBLISHED = (EditionStatus.PUBLISHED, EditionStatus.ARCHIVED)
@@ -36,7 +36,8 @@ class RenderedEmail:
     slug: str
     subject: str
     preheader: str
-    html: str
+    body: str  # corpo enviado ao Kit
+    html: str  # documento completo, para pré-visualização local
 
 
 @dataclass
@@ -45,7 +46,7 @@ class SendResult:
     sent: bool
     test: bool
     message: str
-    campaign_id: int | None = None
+    broadcast_id: int | None = None
 
 
 def latest_published(session: Session) -> NewsletterEdition:
@@ -69,7 +70,7 @@ def render_newsletter(
     *,
     site_url: str,
     timezone_name: str,
-    for_subscribers: bool,
+    test: bool = False,
 ) -> RenderedEmail:
     if edition.status not in PUBLISHED:
         raise NewsletterError(f"A edição {edition.edition_number} não está publicada.")
@@ -80,26 +81,30 @@ def render_newsletter(
     words = len(view.introduction.striptags().split()) + sum(
         len(a.summary.striptags().split()) + len(a.headline.split()) for a in articles
     )
-    subject = _truncate(f"☕ {articles[0].headline}", 110)
+    subject = _truncate(("[TESTE] " if test else "") + f"☕ {articles[0].headline}", 110)
     others = [a.headline for a in articles[1:]]
     preheader = _truncate(
         ("Também nesta edição: " + "; ".join(others)) if others else view.title, 150
     )
-    html = (
-        _environment()
-        .get_template("email/newsletter.html")
-        .render(
-            edition=view,
-            subject=subject,
-            preheader=preheader,
-            site_url=site_url if site_url.endswith("/") else site_url + "/",
-            reading_minutes=max(1, math.ceil(words / 200)),
-            ai_notice=AI_NOTICE if is_automatic(edition) else None,
-            disclaimer=DISCLAIMER,
-            unsubscribe_url=UNSUBSCRIBE_TAG if for_subscribers else None,
-        )
+    context = {
+        "edition": view,
+        "subject": subject,
+        "preheader": preheader,
+        "site_url": site_url if site_url.endswith("/") else site_url + "/",
+        "reading_minutes": max(1, math.ceil(words / 200)),
+        "ai_notice": AI_NOTICE if is_automatic(edition) else None,
+        "disclaimer": DISCLAIMER,
+        "test": test,
+    }
+    env = _environment()
+    return RenderedEmail(
+        edition.edition_number,
+        edition.slug,
+        subject,
+        preheader,
+        body=env.get_template("email/content.html").render(**context),
+        html=env.get_template("email/newsletter.html").render(**context),
     )
-    return RenderedEmail(edition.edition_number, edition.slug, subject, preheader, html)
 
 
 def sent_marker(editions_dir: Path, slug: str) -> Path:
@@ -111,69 +116,57 @@ def send_newsletter(
     settings: Settings,
     *,
     edition_number: int | None = None,
-    test_to: str | None = None,
-    client: BrevoClient | None = None,
+    test: bool = False,
+    client: KitClient | None = None,
 ) -> SendResult:
-    """Envia a edição (padrão: a mais recente publicada) aos assinantes ou a um teste."""
+    """Agenda no Kit a edição (padrão: a mais recente publicada) para assinantes ou teste."""
     missing = [
         name
-        for name, value in (
-            ("BREVO_API_KEY", settings.brevo_api_key),
-            ("SITE_URL", settings.site_url),
-            ("NEWSLETTER_SENDER_EMAIL ou CONTACT_EMAIL", settings.sender_email),
-        )
+        for name, value in (("KIT_API_KEY", settings.kit_api_key), ("SITE_URL", settings.site_url))
         if not value
     ]
-    if test_to is None and settings.brevo_list_id is None:
-        missing.append("BREVO_LIST_ID")
+    if test and settings.kit_test_tag_id is None:
+        missing.append("KIT_TEST_TAG_ID")
     if missing:
         raise NewsletterError("Configuração ausente para a newsletter: " + ", ".join(missing))
-    assert settings.site_url and settings.sender_email and settings.brevo_api_key
+    assert settings.site_url and settings.kit_api_key
 
     edition = (
         get_edition(session, edition_number)
         if edition_number is not None
         else latest_published(session)
     )
-    test = test_to is not None
     marker = sent_marker(settings.editions_dir, edition.slug)
     if not test and marker.exists():
         return SendResult(
             edition.edition_number, False, False, f"edição {edition.slug} já foi enviada"
         )
     email = render_newsletter(
-        session,
-        edition,
-        site_url=settings.site_url,
-        timezone_name=settings.timezone,
-        for_subscribers=not test,
+        session, edition, site_url=settings.site_url, timezone_name=settings.timezone, test=test
     )
     owns_client = client is None
-    client = client or BrevoClient(settings.brevo_api_key.get_secret_value())
+    client = client or KitClient(settings.kit_api_key.get_secret_value())
     try:
-        if test:
-            assert test_to is not None
-            client.send_test(
-                to=test_to,
-                subject="[TESTE] " + email.subject,
-                sender_name=settings.newsletter_sender_name,
-                sender_email=settings.sender_email,
-                html=email.html,
-            )
-            return SendResult(edition.edition_number, True, True, "e-mail de teste enviado")
-        assert settings.brevo_list_id is not None
-        campaign_id = client.send_campaign(
-            name=f"UFABC Science — {edition.slug}",
+        broadcast_id = client.schedule_broadcast(
             subject=email.subject,
-            preheader=email.preheader,
-            sender_name=settings.newsletter_sender_name,
-            sender_email=settings.sender_email,
-            html=email.html,
-            list_id=settings.brevo_list_id,
+            preview_text=email.preheader,
+            description=f"UFABC Science — {edition.slug}" + (" (teste)" if test else ""),
+            html=email.body,
+            public=not test,
+            tag_id=settings.kit_test_tag_id if test else None,
+            email_address=settings.newsletter_sender_email,
         )
     finally:
         if owns_client:
             client.close()
+    if test:
+        return SendResult(
+            edition.edition_number,
+            True,
+            True,
+            "teste agendado no Kit para os assinantes com a tag de teste (envio em ~2 min)",
+            broadcast_id=broadcast_id,
+        )
     write_text_atomic(
         marker,
         json.dumps(
@@ -181,8 +174,8 @@ def send_newsletter(
                 "schema": "ufabc-science/newsletter-send@1",
                 "edition_number": edition.edition_number,
                 "slug": edition.slug,
-                "campaign_id": campaign_id,
-                "list_id": settings.brevo_list_id,
+                "provider": "kit",
+                "broadcast_id": broadcast_id,
                 "sent_at": utcnow().isoformat(timespec="seconds"),
             },
             ensure_ascii=False,
@@ -191,7 +184,11 @@ def send_newsletter(
         + "\n",
     )
     return SendResult(
-        edition.edition_number, True, False, "enviada aos assinantes", campaign_id=campaign_id
+        edition.edition_number,
+        True,
+        False,
+        "agendada no Kit para todos os assinantes (envio em ~2 min)",
+        broadcast_id=broadcast_id,
     )
 
 

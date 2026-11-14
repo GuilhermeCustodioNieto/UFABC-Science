@@ -107,7 +107,7 @@ python -m ufabc_science edition publish --edition 1 --by "Seu nome" --confirm
 | `site build [--require-edition N] [--strict]` | Site público em `dist/` só com edições publicadas. |
 | `run [--days] [--sources] [--max-articles] [--limit] [--steps all\|process\|collect,enrich,...]` | Pipeline completo ou parcial; **nunca aprova nem publica**. |
 | `autopublish [--max-articles N] [--date AAAA-MM-DD]` | Exige `AUTO_PUBLISH=true`: aprova só rascunhos de IA real `PASSED` sem avisos, monta e publica a edição da semana. |
-| `newsletter preview [--edition N]` · `newsletter send [--edition N] [--test [--to EMAIL]]` | E-mail da edição via Brevo (aos assinantes uma única vez, ou teste). Ver [`docs/NEWSLETTER.md`](docs/NEWSLETTER.md). |
+| `newsletter preview [--edition N]` · `newsletter send [--edition N] [--test] [--skip-if-unconfigured]` | E-mail da edição via Kit (aos assinantes uma única vez, ou teste por tag). Ver [`docs/NEWSLETTER.md`](docs/NEWSLETTER.md). |
 | `runs [--limit 10]` | Histórico de execuções. |
 
 Códigos de saída: `0` sucesso · `1` erro ou validação reprovada · `2` uso/configuração
@@ -146,7 +146,7 @@ deploy no Pages. O site avisa que os resumos não tiveram revisão humana. Rascu
 `WARNING`/`FAILED` ficam pendentes. Para voltar ao fluxo com revisão humana, defina a variável
 `AUTO_PUBLISH=false`. Detalhes em [`docs/AUTOMATION_GUIDE.md`](docs/AUTOMATION_GUIDE.md).
 
-Com o Brevo configurado, a edição também é enviada por e-mail aos assinantes toda segunda,
+Com o Kit configurado (plano gratuito), a edição também é enviada por e-mail aos assinantes toda segunda,
 e o site ganha um botão "Assinar": veja [`docs/NEWSLETTER.md`](docs/NEWSLETTER.md).
 
 ## Limitações conhecidas

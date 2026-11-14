@@ -178,11 +178,11 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
 
-  # Envia a edição recém-publicada aos assinantes (Brevo), depois de o site estar no ar.
-  # Só roda se a variável BREVO_LIST_ID existir; cada edição é enviada uma única vez.
+  # Envia a edição recém-publicada aos assinantes (Kit), depois de o site estar no ar.
+  # Sem o secret KIT_API_KEY, termina sem enviar; cada edição é enviada uma única vez.
   newsletter:
     needs: [pipeline, deploy]
-    if: ${{ !cancelled() && needs.deploy.result == 'success' && needs.pipeline.outputs.published == 'true' && vars.BREVO_LIST_ID != '' }}
+    if: ${{ !cancelled() && needs.deploy.result == 'success' && needs.pipeline.outputs.published == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -191,10 +191,8 @@ jobs:
       DATA_DIR: persist/data
       EDITIONS_DIR: persist/editions
       DATABASE_URL: sqlite:///persist/data/database/ufabc_science.db
-      CONTACT_EMAIL: ${{ vars.CONTACT_EMAIL }}
       NEWSLETTER_SENDER_EMAIL: ${{ vars.NEWSLETTER_SENDER_EMAIL }}
-      BREVO_LIST_ID: ${{ vars.BREVO_LIST_ID }}
-      BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+      KIT_API_KEY: ${{ secrets.KIT_API_KEY }}
       SITE_URL: ${{ vars.SITE_URL || format('https://{0}.github.io/{1}/', github.repository_owner, github.event.repository.name) }}
     steps:
       - name: Código
@@ -216,7 +214,7 @@ jobs:
         run: bash scripts/data_branch.sh fetch persist
 
       - name: Enviar newsletter aos assinantes
-        run: python -m ufabc_science newsletter send
+        run: python -m ufabc_science newsletter send --skip-if-unconfigured
 
       - name: Registrar envio na branch "data"
         if: ${{ !cancelled() }}

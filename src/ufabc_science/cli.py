@@ -41,7 +41,7 @@ from ufabc_science.infrastructure.database import (
     init_database,
     session_scope,
 )
-from ufabc_science.newsletter.brevo import NewsletterError
+from ufabc_science.newsletter.kit import NewsletterError
 from ufabc_science.pipeline.lock import ConcurrentRunError
 
 logger = logging.getLogger("ufabc_science.cli")
@@ -766,7 +766,6 @@ def _cmd_newsletter_preview(args: argparse.Namespace, settings: Settings) -> int
                 edition,
                 site_url=settings.site_url or "https://exemplo.invalid/",
                 timezone_name=settings.timezone,
-                for_subscribers=True,
             )
     finally:
         engine.dispose()
@@ -785,20 +784,15 @@ def _cmd_newsletter_send(args: argparse.Namespace, settings: Settings) -> int:
 
     from ufabc_science.newsletter.service import send_newsletter
 
-    test_to = None
-    if args.test:
-        test_to = args.to or settings.newsletter_test_email
-        if not test_to:
-            raise CLIError("Envio de teste exige --to ou NEWSLETTER_TEST_EMAIL.")
+    if args.skip_if_unconfigured and not settings.kit_api_key:
+        print("Newsletter não configurada (KIT_API_KEY ausente): nenhum e-mail enviado.")
+        return EXIT_OK
     engine, factory = open_database(settings)
     try:
         with factory() as session:
-            result = send_newsletter(
-                session, settings, edition_number=args.edition, test_to=test_to
-            )
+            result = send_newsletter(session, settings, edition_number=args.edition, test=args.test)
     finally:
         engine.dispose()
-    # O endereço de teste não é impresso: logs de repositórios públicos são públicos.
     line = f"Newsletter da edição {result.edition_number:03d}: {result.message}."
     print(line)
     summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
@@ -1039,15 +1033,21 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--date", type=_date, help="Data de referência AAAA-MM-DD (padrão: hoje).")
     p.set_defaults(handler=_cmd_autopublish)
 
-    p = sub.add_parser("newsletter", help="Newsletter por e-mail (Brevo).")
+    p = sub.add_parser("newsletter", help="Newsletter por e-mail (Kit).")
     nl = p.add_subparsers(dest="newsletter_command", metavar="AÇÃO", required=True)
     n = nl.add_parser("preview", help="Gera o HTML do e-mail localmente (não envia).")
     n.add_argument("--edition", type=int, help="Padrão: a edição publicada mais recente.")
     n.set_defaults(handler=_cmd_newsletter_preview)
     n = nl.add_parser("send", help="Envia a edição aos assinantes (uma vez) ou um teste.")
     n.add_argument("--edition", type=int, help="Padrão: a edição publicada mais recente.")
-    n.add_argument("--test", action="store_true", help="Envia só para um endereço de teste.")
-    n.add_argument("--to", help="Endereço de teste (padrão: NEWSLETTER_TEST_EMAIL).")
+    n.add_argument(
+        "--test", action="store_true", help="Envia só aos assinantes com a tag KIT_TEST_TAG_ID."
+    )
+    n.add_argument(
+        "--skip-if-unconfigured",
+        action="store_true",
+        help="Termina sem erro se KIT_API_KEY não estiver definida.",
+    )
     n.set_defaults(handler=_cmd_newsletter_send)
 
     p = sub.add_parser("runs", help="Lista execuções do pipeline.")

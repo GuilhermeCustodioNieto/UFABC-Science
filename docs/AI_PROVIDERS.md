@@ -45,6 +45,7 @@ AI_MAX_TOKENS=2000
 | Opção | Custo | Observações |
 |---|---|---|
 | **Ollama** ou **LM Studio** (local) | R$ 0 em serviços; usa CPU/GPU da sua máquina | Servidor OpenAI-compatível local (`http://localhost:11434/v1` no Ollama, `http://localhost:1234/v1` no LM Studio). Não funciona no GitHub Actions (o runner não acessa sua máquina). Qualidade depende do modelo baixado. **Medido neste projeto** (`qwen2.5:7b`, notebook do desenvolvedor): ~4 min por rascunho; abstracts longos podem exceder 300 s (use `AI_TIMEOUT=300` ou mais). Um lote de 10 leva ~40 min: gere com `--limit` pequeno ou deixe rodando. |
+| **GitHub Models** (padrão do workflow) | R$ 0; limites diários de requisições por modelo, definidos pelo GitHub e sujeitos a mudança | `AI_BASE_URL=https://models.github.ai/inference`, `AI_MODEL=openai/gpt-4.1-mini`. No GitHub Actions autentica com o `GITHUB_TOKEN` (permissão `models: read`), sem chave. Localmente, use um *fine-grained token* com permissão *Models* em `AI_API_KEY`. Os prompts contêm apenas metadados públicos dos artigos. |
 | Serviço hospedado com API OpenAI-compatível | Varia | Muitos oferecem cotas gratuitas temporárias ou com limites de requisições/tokens que **mudam sem aviso**. Antes de configurar, registre aqui: provedor, modelo, limites, preço por token, política de uso de dados enviados e data da consulta. |
 
 Regras do projeto: nenhum provedor pago é obrigatório; o sistema sempre funciona com `mock`;

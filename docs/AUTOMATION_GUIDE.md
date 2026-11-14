@@ -7,7 +7,8 @@ python -m ufabc_science run --days 7
 ```
 
 Ordem: `collect` → `enrich` (Crossref por DOI) → `classify` → `score` → `generate` (seleção,
-geração, verificação e Markdown em `pending/`). **Nunca** aprova, cria edição ou publica.
+geração, verificação e Markdown em `pending/`). O `run` em si **nunca** aprova, cria edição
+ou publica; isso só acontece no comando separado `autopublish` (abaixo).
 
 | Opção | Efeito |
 |---|---|
@@ -74,7 +75,7 @@ pontua.
 
 GitHub → **Actions** → **Pipeline semanal** → **Run workflow**. Parâmetros: `days`,
 `sources`, `max_articles`, `generation_limit`, `steps`. Campos vazios usam a configuração do
-projeto. A execução manual também não aprova nem publica.
+projeto. Com `AUTO_PUBLISH=true`, a execução manual também publica automaticamente.
 
 ### Recuperar uma execução com falha
 
@@ -96,7 +97,40 @@ projeto. A execução manual também não aprova nem publica.
   não interrompem as demais.
 - Provedores de IA hospedados: cotas gratuitas são instáveis; o projeto não depende delas.
 
-## O que continua manual
+## Publicação automática (padrão no GitHub Actions)
+
+Com `AUTO_PUBLISH=true` (padrão do workflow; desligue definindo a variável `AUTO_PUBLISH` como
+`false`), a rotina semanal roda sozinha de ponta a ponta:
+
+```text
+run (coleta → … → rascunhos) → autopublish → commit na branch data → site build → deploy no Pages
+```
+
+`python -m ufabc_science autopublish [--max-articles N] [--date AAAA-MM-DD]`:
+
+1. **Aprova automaticamente** apenas rascunhos em `pending/` que: foram gerados por um modelo
+   real (nunca o `mock`); não foram editados à mão; são a versão mais recente; têm verificação
+   `PASSED` no banco; e cuja revalidação do arquivo não gera nenhum erro **nem aviso**.
+   `WARNING` e `FAILED` ficam em `pending/` para revisão humana opcional. A aprovação passa pelo
+   mesmo `editorial sync` da aprovação humana (`reviewer: Publicação automática`, hash e cópia
+   do texto aprovado).
+2. Cria a edição da semana ISO corrente com até `AUTO_PUBLISH_MAX_ARTICLES` artigos aprovados
+   ainda não publicados (maior prioridade primeiro), escreve uma introdução padronizada que
+   declara a ausência de revisão humana e publica a edição.
+3. Sem artigos elegíveis, nada é publicado naquela semana. A mesma semana nunca é publicada
+   duas vezes e nenhum artigo é republicado.
+
+O site exibe em todas as páginas um aviso de que os resumos foram escritos por IA, sem revisão
+humana, sempre que houver alguma edição publicada automaticamente. O deploy só acontece se os
+dados foram gravados com sucesso na branch `data`.
+
+**IA padrão: GitHub Models** (`AI_BASE_URL=https://models.github.ai/inference`,
+`AI_MODEL=openai/gpt-4.1-mini`), autenticado pelo `GITHUB_TOKEN` do próprio workflow
+(permissão `models: read`): sem conta, chave ou custo, com limites diários de requisições que
+o GitHub pode alterar. Para usar outro provedor, defina as variáveis `AI_*` e o secret
+`AI_API_KEY`.
+
+## Fluxo com revisão humana (`AUTO_PUBLISH=false`)
 
 Revisar, aprovar, rejeitar e pedir revisão de artigos; aprovar a introdução; montar e validar
 a edição; `edition publish --confirm`; disparar o deploy com a frase de confirmação.

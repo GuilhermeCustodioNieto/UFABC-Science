@@ -83,6 +83,10 @@ class Settings(BaseSettings):
 
     # --- Automação ---------------------------------------------------------------------
     pipeline_lock_stale_hours: float = Field(default=6, gt=0, le=168)
+    # Publicação automática sem revisão humana (ver docs/AUTOMATION_GUIDE.md). Desligada
+    # por padrão: só aprova rascunhos PASSED gerados por IA real (nunca o mock).
+    auto_publish: bool = False
+    auto_publish_max_articles: int = Field(default=10, ge=1, le=100)
 
     # --- Validadores -------------------------------------------------------------------
 

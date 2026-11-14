@@ -7,9 +7,11 @@ Códigos de saída:
 * ``2`` — uso incorreto ou configuração inválida;
 * ``3`` — operação bloqueada por outra execução em andamento (trava do pipeline).
 
-Nenhum comando aprova conteúdo: a aprovação é sempre feita por uma pessoa no
-arquivo Markdown e registrada por ``editorial sync``. A mudança de estado para
-``PUBLISHED`` ocorre somente em ``edition publish --confirm``.
+A aprovação é feita por uma pessoa no arquivo Markdown e registrada por
+``editorial sync``, e a mudança de estado para ``PUBLISHED`` ocorre em
+``edition publish --confirm``. A única exceção é ``autopublish``, que só funciona
+com ``AUTO_PUBLISH=true`` e aprova apenas rascunhos de IA real com verificação
+``PASSED`` e sem avisos (ver ``editorial/autopublish.py``).
 """
 
 from __future__ import annotations
@@ -154,6 +156,7 @@ def _cmd_config_check(args: argparse.Namespace, settings: Settings) -> int:
         "max_articles_per_source": settings.max_articles_per_source,
         "generation_limit": settings.generation_limit,
         "timezone": settings.timezone,
+        "auto_publish": settings.auto_publish,
     }
     _print_json(report)
     warnings = []
@@ -165,6 +168,10 @@ def _cmd_config_check(args: argparse.Namespace, settings: Settings) -> int:
         )
     if not settings.ai_enabled:
         warnings.append("AI_PROVIDER=mock: rascunhos extrativos apenas para desenvolvimento.")
+    if settings.auto_publish:
+        warnings.append(
+            "AUTO_PUBLISH=true: rascunhos PASSED serão aprovados e publicados sem revisão humana."
+        )
     for warning in warnings:
         logger.warning(warning)
     return EXIT_OK
@@ -693,6 +700,44 @@ def _cmd_site_build(args: argparse.Namespace, settings: Settings) -> int:
     return EXIT_ERROR if result.errors and args.strict else EXIT_OK
 
 
+def _cmd_autopublish(args: argparse.Namespace, settings: Settings) -> int:
+    import os
+    from datetime import datetime
+
+    from ufabc_science.editorial.autopublish import auto_publish
+
+    if not settings.auto_publish:
+        raise CLIError(
+            "Publicação automática desligada. Defina AUTO_PUBLISH=true para permitir que "
+            "rascunhos PASSED sejam aprovados e publicados sem revisão humana."
+        )
+    if not settings.ai_enabled:
+        logger.warning("AI_PROVIDER=mock: rascunhos do mock nunca são aprovados automaticamente.")
+    today = args.date or datetime.now(settings.tzinfo).date()
+    engine, factory = open_database(settings)
+    try:
+        with session_scope(factory) as session:
+            report = auto_publish(
+                session,
+                today=today,
+                max_articles=args.max_articles or settings.auto_publish_max_articles,
+                **_edition_kwargs(settings),  # type: ignore[arg-type]
+            )
+    finally:
+        engine.dispose()
+    text = report.to_markdown()
+    print(text)
+    summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+    if summary_path:
+        with open(summary_path, "a", encoding="utf-8") as handle:
+            handle.write(text)
+    output_path = os.environ.get("GITHUB_OUTPUT")
+    if output_path:
+        with open(output_path, "a", encoding="utf-8") as handle:
+            handle.write(f"published={'true' if report.published else 'false'}\n")
+    return EXIT_OK
+
+
 # --- Etapa 5: pipeline ------------------------------------------------------------------
 
 
@@ -915,6 +960,14 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--trigger", default="local", help="Origem: local, schedule, workflow_dispatch")
     p.add_argument("--ai-classification", action="store_true")
     p.set_defaults(handler=_cmd_run)
+
+    p = sub.add_parser(
+        "autopublish",
+        help="Aprova rascunhos PASSED, monta e publica a edição da semana (AUTO_PUBLISH=true).",
+    )
+    p.add_argument("--max-articles", type=int, help="Máximo de artigos na edição.")
+    p.add_argument("--date", type=_date, help="Data de referência AAAA-MM-DD (padrão: hoje).")
+    p.set_defaults(handler=_cmd_autopublish)
 
     p = sub.add_parser("runs", help="Lista execuções do pipeline.")
     p.add_argument("--limit", type=int, default=10)

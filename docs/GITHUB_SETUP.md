@@ -29,9 +29,14 @@
 |---|---|---|
 | `CONTACT_EMAIL` | `contato@exemplo.org` | Recomendada |
 | `ENABLED_SOURCES` | `openalex,pubmed,arxiv,crossref` | Não |
-| `AI_PROVIDER` | `mock` ou `openai_compatible` | Não (padrão `mock`) |
-| `AI_MODEL` | nome do modelo | Se `openai_compatible` |
-| `AI_BASE_URL` | URL da API compatível | Se `openai_compatible` |
+| `AUTO_PUBLISH` | `true` ou `false` | Não (padrão `true`: publica sozinho, sem revisão humana) |
+| `AI_PROVIDER` | `openai_compatible` ou `mock` | Não (padrão `openai_compatible`) |
+| `AI_MODEL` | nome do modelo | Não (padrão `openai/gpt-4.1-mini`) |
+| `AI_BASE_URL` | URL da API compatível | Não (padrão GitHub Models) |
+
+Sem nenhuma variável de IA, o workflow usa o **GitHub Models** com o `GITHUB_TOKEN`
+automático (gratuito, sem chave). Não crie `AI_PROVIDER=mock` se quiser publicação automática:
+rascunhos do mock nunca são aprovados.
 
 *Secrets* (sensíveis):
 
@@ -39,7 +44,7 @@
 |---|---|
 | `OPENALEX_API_KEY` | Orçamento próprio no OpenAlex (gratuito). Recomendado. |
 | `NCBI_API_KEY` | Limite maior no PubMed (gratuito). Opcional. |
-| `AI_API_KEY` | Chave do provedor de IA, se houver. Opcional. |
+| `AI_API_KEY` | Chave de outro provedor de IA. Opcional: sem ela, usa o `GITHUB_TOKEN` (GitHub Models). |
 
 Use o `GITHUB_TOKEN` automático; não crie tokens pessoais. Um provedor de IA local (Ollama)
 não é acessível pelo runner do GitHub.
@@ -54,17 +59,20 @@ impeçam o `github-actions[bot]` de enviar para `data`.
 
 1. **Settings → Pages → Build and deployment → Source: GitHub Actions**.
 2. **Settings → Environments → github-pages**: em *Deployment branches*, permita só `main`.
-   Recomendado: adicione você em *Required reviewers* — o deploy pedirá aprovação manual
-   adicional (segunda trava humana).
+   Com publicação automática, **não** adicione *Required reviewers* (o deploy semanal ficaria
+   esperando seu clique). Use-o apenas no fluxo com revisão humana (`AUTO_PUBLISH=false`).
 
 ## 6. Primeira execução
 
-1. Actions → **Pipeline semanal** → *Run workflow* (`steps: collect,enrich` para começar).
-2. Confira o resumo e a nova branch `data`.
-3. Faça a revisão editorial localmente (ver `PERSISTENCE_STRATEGY.md`, "Uso local") e envie a
-   branch `data`.
+1. Actions → **Pipeline semanal** → *Run workflow* (`steps: auto`).
+2. Confira o resumo (seção "Publicação automática"), a nova branch `data` e, se algum rascunho
+   passou nas checagens, o site em `https://<usuário>.github.io/<repositório>/`.
+3. Depois disso, nada mais é necessário: o workflow roda toda segunda às 08:00.
 
-## 7. Autorizar uma publicação
+Com `AUTO_PUBLISH=false`, faça a revisão editorial localmente (ver `PERSISTENCE_STRATEGY.md`,
+"Uso local"), envie a branch `data` e siga o passo 7.
+
+## 7. Autorizar uma publicação manual (somente com `AUTO_PUBLISH=false`)
 
 1. Localmente, com a branch `data` atualizada:
 

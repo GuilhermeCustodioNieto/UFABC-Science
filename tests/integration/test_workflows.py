@@ -48,27 +48,52 @@ def test_weekly_pipeline_schedule_and_manual_parameters() -> None:
     assert triggers["schedule"] == [{"cron": "0 11 * * 1"}]  # segunda, 08:00 em São Paulo
     inputs = triggers["workflow_dispatch"]["inputs"]
     assert {"days", "sources", "max_articles", "generation_limit", "steps"} <= set(inputs)
-    assert workflow["permissions"] == {"contents": "write"}
+    assert workflow["permissions"] == {"contents": "write", "models": "read"}
     assert workflow["concurrency"]["cancel-in-progress"] is False
 
 
-def test_weekly_pipeline_never_approves_or_publishes() -> None:
+def test_weekly_pipeline_publishes_only_through_autopublish() -> None:
     text = (WORKFLOWS / "weekly_pipeline.yml").read_text(encoding="utf-8")
     workflow = load("weekly_pipeline.yml")
+    pipeline = workflow["jobs"]["pipeline"]
     assert "pages" not in str(workflow["permissions"])
-    for forbidden in ("edition publish", "site build", "deploy-pages", "status: approved"):
+    assert "permissions" not in pipeline  # herda contents: write + models: read, sem Pages
+    # Nenhuma aprovação ou publicação manual embutida: só o comando com critérios próprios.
+    for forbidden in ("edition publish", "status: approved", "--confirm"):
         assert forbidden not in text
     assert "--force" not in text
+    steps = {step.get("id"): step for step in pipeline["steps"] if step.get("id")}
+    assert steps["autopublish"]["run"].strip() == "python -m ufabc_science autopublish"
+    assert "env.AUTO_PUBLISH == 'true'" in steps["autopublish"]["if"]
+    assert pipeline["env"]["AUTO_PUBLISH"] == "${{ vars.AUTO_PUBLISH || 'true' }}"
+    # O site só é gerado depois de os dados serem persistidos na branch "data".
+    assert "steps.persist.outcome == 'success'" in steps["site"]["if"]
+    assert "site build --strict" in steps["site"]["run"]
     commands = " ".join(step.get("run", "") for step in all_steps(workflow))
     assert "python -m ufabc_science run" in commands
     assert "data_branch.sh commit" in commands
+    names = [step.get("id") for step in pipeline["steps"]]
+    assert names.index("autopublish") < names.index("persist") < names.index("site")
+
+
+def test_weekly_pipeline_deploy_job_is_isolated() -> None:
+    workflow = load("weekly_pipeline.yml")
+    deploy = workflow["jobs"]["deploy"]
+    assert deploy["needs"] == "pipeline"
+    assert deploy["permissions"] == {"pages": "write", "id-token": "write"}
+    assert deploy["environment"]["name"] == "github-pages"
+    assert "needs.pipeline.outputs.site == 'success'" in deploy["if"]
+    assert [s["uses"].split("@")[0] for s in deploy["steps"]] == ["actions/deploy-pages"]
 
 
 def test_weekly_pipeline_uses_secrets_only_through_env() -> None:
     workflow = load("weekly_pipeline.yml")
     env = workflow["jobs"]["pipeline"]["env"]
-    for key in ("AI_API_KEY", "OPENALEX_API_KEY", "NCBI_API_KEY"):
+    for key in ("OPENALEX_API_KEY", "NCBI_API_KEY"):
         assert env[key] == f"${{{{ secrets.{key} }}}}"
+    # Sem secret próprio, usa o GITHUB_TOKEN (GitHub Models, gratuito).
+    assert env["AI_API_KEY"] == "${{ secrets.AI_API_KEY || github.token }}"
+    assert env["AI_BASE_URL"] == "${{ vars.AI_BASE_URL || 'https://models.github.ai/inference' }}"
     text = (WORKFLOWS / "weekly_pipeline.yml").read_text(encoding="utf-8")
     assert "echo $AI_API_KEY" not in text
     assert all("secrets." not in str(step) for step in all_steps(workflow))

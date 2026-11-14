@@ -1,4 +1,8 @@
-# Coleta e processamento semanal. NUNCA aprova nem publica conteúdo.
+# Coleta, geração e (com AUTO_PUBLISH, padrão "true") publicação automática semanal.
+# Publicação automática: só rascunhos de IA real com verificação PASSED e sem avisos são
+# aprovados (editorial/autopublish.py); o site avisa que não houve revisão humana.
+# Para voltar ao fluxo com revisão humana, defina a variável AUTO_PUBLISH = false.
+# IA padrão: GitHub Models (gratuito, autenticado pelo GITHUB_TOKEN; permissão models: read).
 # Agendamento: segundas-feiras às 11:00 UTC = 08:00 em America/Sao_Paulo (UTC-3).
 # O Brasil não adota horário de verão desde 2019; se voltar a adotar, a execução
 # ocorrerá às 09:00 locais nesse período (ver docs/AUTOMATION_GUIDE.md).
@@ -37,10 +41,11 @@ on:
           - classify,score
           - process
 
-# Escrita é necessária apenas para atualizar a branch de dados ("data").
-# Nenhuma permissão de Pages, issues ou pull requests é concedida.
+# Escrita é necessária apenas para atualizar a branch de dados ("data"); models: read
+# permite usar o GitHub Models com o GITHUB_TOKEN. Pages só no job "deploy".
 permissions:
   contents: write
+  models: read
 
 concurrency:
   group: ufabc-science-data
@@ -50,6 +55,8 @@ jobs:
   pipeline:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    outputs:
+      site: ${{ steps.site.outcome }}
     env:
       APP_ENV: production
       LOG_LEVEL: INFO
@@ -58,10 +65,12 @@ jobs:
       DATABASE_URL: sqlite:///persist/data/database/ufabc_science.db
       CONTACT_EMAIL: ${{ vars.CONTACT_EMAIL }}
       ENABLED_SOURCES: ${{ vars.ENABLED_SOURCES || 'openalex,pubmed,arxiv,crossref' }}
-      AI_PROVIDER: ${{ vars.AI_PROVIDER || 'mock' }}
-      AI_MODEL: ${{ vars.AI_MODEL }}
-      AI_BASE_URL: ${{ vars.AI_BASE_URL }}
-      AI_API_KEY: ${{ secrets.AI_API_KEY }}
+      AI_PROVIDER: ${{ vars.AI_PROVIDER || 'openai_compatible' }}
+      AI_MODEL: ${{ vars.AI_MODEL || 'openai/gpt-4.1-mini' }}
+      AI_BASE_URL: ${{ vars.AI_BASE_URL || 'https://models.github.ai/inference' }}
+      AI_API_KEY: ${{ secrets.AI_API_KEY || github.token }}
+      AUTO_PUBLISH: ${{ vars.AUTO_PUBLISH || 'true' }}
+      OUTPUT_DIR: dist
       OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}
       NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
       INPUT_DAYS: ${{ inputs.days }}
@@ -94,7 +103,7 @@ jobs:
       - name: Banco de dados
         run: python -m ufabc_science init-db
 
-      - name: Executar pipeline (sem aprovação nem publicação)
+      - name: Executar pipeline (coleta, classificação, relevância e rascunhos)
         id: run
         shell: bash
         run: |
@@ -111,7 +120,13 @@ jobs:
           [ -n "$INPUT_GENERATION_LIMIT" ] && args+=(--limit "$INPUT_GENERATION_LIMIT")
           python -m ufabc_science run "${args[@]}"
 
+      - name: Publicação automática (somente rascunhos PASSED, sem avisos)
+        id: autopublish
+        if: ${{ !cancelled() && env.AUTO_PUBLISH == 'true' }}
+        run: python -m ufabc_science autopublish
+
       - name: Persistir dados na branch "data"
+        id: persist
         if: ${{ !cancelled() }}
         env:
           RUN_LABEL: "${{ github.run_id }} (${{ github.event_name }})"
@@ -129,3 +144,34 @@ jobs:
             persist/data/runs/
             persist/data/editorial/pending/
             persist/data/raw/
+
+      # O site só é implantado se os dados foram persistidos (nada publicado fica sem registro).
+      - name: Gerar site público (somente edições publicadas)
+        id: site
+        if: ${{ !cancelled() && env.AUTO_PUBLISH == 'true' && steps.persist.outcome == 'success' }}
+        run: python -m ufabc_science site build --strict
+
+      - name: Enviar site
+        if: ${{ !cancelled() && steps.site.outcome == 'success' }}
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: dist
+
+  deploy:
+    needs: pipeline
+    if: ${{ !cancelled() && needs.pipeline.outputs.site == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Implantar
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

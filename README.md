@@ -2,8 +2,10 @@
 
 Plataforma de **curadoria e divulgação científica assistida por IA** para a comunidade da
 Universidade Federal do ABC (UFABC). O sistema descobre pesquisas recentes, organiza-as por
-editoria, prioriza o que interessa à comunidade e produz rascunhos em português que **só são
-publicados depois de aprovação humana**, em uma newsletter semanal em HTML estático.
+editoria, prioriza o que interessa à comunidade e produz rascunhos em português publicados em
+uma newsletter semanal em HTML estático — **depois de aprovação humana** ou, no modo automático
+(padrão no GitHub Actions), **só se passarem em todas as checagens automáticas**, com aviso
+explícito no site.
 
 > UFABC Science é uma iniciativa independente. Não representa oficialmente a UFABC.
 
@@ -104,6 +106,7 @@ python -m ufabc_science edition publish --edition 1 --by "Seu nome" --confirm
 | `publish --edition N` | **Pré-visualização** HTML local (não altera estado). |
 | `site build [--require-edition N] [--strict]` | Site público em `dist/` só com edições publicadas. |
 | `run [--days] [--sources] [--max-articles] [--limit] [--steps all\|process\|collect,enrich,...]` | Pipeline completo ou parcial; **nunca aprova nem publica**. |
+| `autopublish [--max-articles N] [--date AAAA-MM-DD]` | Exige `AUTO_PUBLISH=true`: aprova só rascunhos de IA real `PASSED` sem avisos, monta e publica a edição da semana. |
 | `runs [--limit 10]` | Histórico de execuções. |
 
 Códigos de saída: `0` sucesso · `1` erro ou validação reprovada · `2` uso/configuração
@@ -133,11 +136,14 @@ ruff format --check .
 Os testes usam respostas reais gravadas das APIs (`tests/fixtures/api`) servidas por um
 transporte HTTP simulado: não acessam a internet nem exigem chaves.
 
-## O que continua dependendo de ação humana
+## Publicação automática
 
-Aprovar, rejeitar ou pedir revisão de cada artigo; aprovar a introdução da edição; montar e
-validar a edição; executar `edition publish --confirm`; disparar manualmente o workflow de
-deploy com a frase de confirmação. Nenhuma rotina automática faz qualquer uma dessas ações.
+No GitHub Actions, a rotina semanal publica sozinha (`AUTO_PUBLISH=true` por padrão): gera os
+rascunhos com o GitHub Models (gratuito, via `GITHUB_TOKEN`), aprova **apenas** os que passam
+em todas as checagens automáticas (`PASSED`, sem avisos), monta a edição, publica e faz o
+deploy no Pages. O site avisa que os resumos não tiveram revisão humana. Rascunhos com
+`WARNING`/`FAILED` ficam pendentes. Para voltar ao fluxo com revisão humana, defina a variável
+`AUTO_PUBLISH=false`. Detalhes em [`docs/AUTOMATION_GUIDE.md`](docs/AUTOMATION_GUIDE.md).
 
 ## Limitações conhecidas
 

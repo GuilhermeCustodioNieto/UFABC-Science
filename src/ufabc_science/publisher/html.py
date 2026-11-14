@@ -34,6 +34,7 @@ from sqlalchemy.orm import Session
 from ufabc_science.domain.enums import EditionStatus, EditorialStatus, PeerReviewStatus
 from ufabc_science.domain.models import Article, EditorialReview, NewsletterEdition
 from ufabc_science.editorial.approval import latest_approval
+from ufabc_science.editorial.autopublish import is_automatic
 from ufabc_science.editorial.edition import category_names, get_edition, group_by_section
 from ufabc_science.editorial.markdown import parse_body, safe_child
 from ufabc_science.intelligence.schemas import SECTION_FIELDS, SECTION_TITLES
@@ -45,6 +46,11 @@ SITE_MARKER = ".ufabc-science-site"
 DISCLAIMER = (
     "UFABC Science é uma iniciativa independente de curadoria e divulgação científica. "
     "Não representa oficialmente a Universidade Federal do ABC."
+)
+AI_NOTICE = (
+    "Os resumos deste site são escritos por inteligência artificial a partir dos dados "
+    "públicos de cada pesquisa e publicados após checagens automáticas, sem revisão humana. "
+    "Podem conter erros: consulte sempre a pesquisa original."
 )
 ALLOWED_TAGS = {
     "p", "br", "em", "strong", "a", "ul", "ol", "li", "code", "blockquote", "sup", "sub", "h3",
@@ -185,8 +191,9 @@ def _environment() -> Environment:
 class SiteWriter:
     """Escreve páginas com caminhos relativos e proteção de diretório."""
 
-    def __init__(self, output_dir: Path) -> None:
+    def __init__(self, output_dir: Path, *, ai_notice: bool = False) -> None:
         self.output_dir = output_dir
+        self.ai_notice = AI_NOTICE if ai_notice else None
         self.env = _environment()
         self.written: list[str] = []
 
@@ -214,7 +221,11 @@ class SiteWriter:
         depth = relative.count("/")
         root = "../" * depth
         html = self.env.get_template(template).render(
-            root=root, disclaimer=DISCLAIMER, page_path=relative, **context
+            root=root,
+            disclaimer=DISCLAIMER,
+            ai_notice=self.ai_notice,
+            page_path=relative,
+            **context,
         )
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(html, encoding="utf-8", newline="\n")
@@ -284,7 +295,8 @@ def build_site(session: Session, output_dir: Path, *, timezone_name: str) -> Bui
             .order_by(NewsletterEdition.edition_number.desc())
         )
     )
-    writer = SiteWriter(output_dir)
+    # Aviso permanente quando alguma edição foi publicada sem revisão humana.
+    writer = SiteWriter(output_dir, ai_notice=any(is_automatic(e) for e in editions))
     writer.prepare()
     views = []
     errors = []

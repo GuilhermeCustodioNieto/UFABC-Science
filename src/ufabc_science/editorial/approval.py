@@ -10,8 +10,9 @@ O estado editorial é controlado pelo front matter (``status``) e validado aqui:
   com cópia do texto aprovado;
 * arquivos são movidos para ``pending/``, ``approved/`` ou ``rejected/``.
 
-Nenhuma aprovação é feita por código automático: a única origem de
-``approved`` é um humano editando o arquivo.
+A origem de ``approved`` é um humano editando o arquivo ou, somente com
+``AUTO_PUBLISH=true``, ``editorial/autopublish.py`` (rascunhos ``PASSED`` sem avisos),
+que passa por esta mesma sincronização.
 """
 
 from __future__ import annotations

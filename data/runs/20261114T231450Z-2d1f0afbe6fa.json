@@ -1,0 +1,121 @@
+{
+  "run_id": "2d1f0afbe6fa",
+  "status": "partial_success",
+  "started_at": "2026-11-14T23:14:50+00:00",
+  "duration_seconds": 27.22,
+  "parameters": {
+    "days": 7,
+    "sources": [
+      "openalex",
+      "pubmed",
+      "arxiv",
+      "crossref"
+    ],
+    "max_articles": null,
+    "generation_limit": 10,
+    "steps": [
+      "collect",
+      "enrich",
+      "classify",
+      "score",
+      "generate"
+    ],
+    "trigger": "workflow_dispatch",
+    "start_date": null,
+    "end_date": null
+  },
+  "stats": {
+    "sources_consulted": [
+      "openalex",
+      "pubmed",
+      "arxiv",
+      "crossref"
+    ],
+    "collection_window": [
+      "2026-11-07",
+      "2026-11-14"
+    ],
+    "articles_found": 375,
+    "articles_new": 0,
+    "articles_duplicate": 375,
+    "possible_duplicates": 0,
+    "collection_errors": 0,
+    "failed_sources": [],
+    "per_source": [
+      {
+        "source": "openalex",
+        "collected": 100,
+        "inserted": 0,
+        "updated": 0,
+        "ignored": 100,
+        "flagged_duplicates": 0,
+        "invalid": 0,
+        "requests": 5,
+        "errors": []
+      },
+      {
+        "source": "pubmed",
+        "collected": 79,
+        "inserted": 0,
+        "updated": 0,
+        "ignored": 79,
+        "flagged_duplicates": 0,
+        "invalid": 0,
+        "requests": 6,
+        "errors": []
+      },
+      {
+        "source": "arxiv",
+        "collected": 98,
+        "inserted": 0,
+        "updated": 0,
+        "ignored": 98,
+        "flagged_duplicates": 0,
+        "invalid": 0,
+        "requests": 3,
+        "errors": []
+      },
+      {
+        "source": "crossref",
+        "collected": 98,
+        "inserted": 0,
+        "updated": 0,
+        "ignored": 98,
+        "flagged_duplicates": 0,
+        "invalid": 0,
+        "requests": 5,
+        "errors": []
+      }
+    ],
+    "crossref_checked": 0,
+    "crossref_confirmed": 0,
+    "articles_classified": 335,
+    "articles_without_category": 38,
+    "classification_uncertain": 50,
+    "articles_scored": 373,
+    "ai_provider": "openai_compatible",
+    "articles_selected": 10,
+    "contents_generated": 0,
+    "verification_passed": 0,
+    "verification_warning": 0,
+    "verification_failed": 0,
+    "generation_skipped": {
+      "informacao_insuficiente": 26,
+      "limite_de_processamento": 337
+    },
+    "markdown_files": []
+  },
+  "errors": [
+    "artigo 339: Formato de resposta inesperado: Expecting value: line 1 column 1 (char 0)",
+    "artigo 341: Formato de resposta inesperado: Expecting value: line 1 column 1 (char 0)",
+    "artigo 222: Formato de resposta inesperado: Expecting value: line 1 column 1 (char 0)",
+    "artigo 126: Formato de resposta inesperado: Expecting value: line 1 column 1 (char 0)",
+    "artigo 77: Formato de resposta inesperado: Expecting value: line 1 column 1 (char 0)",
+    "artigo 243: Formato de resposta inesperado: Expecting value: line 1 column 1 (char 0)",
+    "artigo 62: Formato de resposta inesperado: Expecting value: line 1 column 1 (char 0)",
+    "artigo 32: Formato de resposta inesperado: Expecting value: line 1 column 1 (char 0)",
+    "artigo 119: Formato de resposta inesperado: Expecting value: line 1 column 1 (char 0)",
+    "artigo 338: Formato de resposta inesperado: Expecting value: line 1 column 1 (char 0)"
+  ],
+  "messages": []
+}

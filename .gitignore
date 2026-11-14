@@ -1,0 +1,10 @@
+# Branch de dados do UFABC Science: somente estado persistente e editorial.
+data/raw/
+data/exports/
+data/database/*.lock
+data/database/*-journal
+data/database/*-wal
+data/database/*-shm
+*.tmp
+build/
+dist/

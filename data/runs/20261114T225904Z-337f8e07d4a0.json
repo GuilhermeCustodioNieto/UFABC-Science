@@ -1,0 +1,92 @@
+{
+  "run_id": "337f8e07d4a0",
+  "status": "success",
+  "started_at": "2026-11-14T22:59:04+00:00",
+  "duration_seconds": 77.02,
+  "parameters": {
+    "days": 7,
+    "sources": [
+      "openalex",
+      "pubmed",
+      "arxiv",
+      "crossref"
+    ],
+    "max_articles": null,
+    "generation_limit": 10,
+    "steps": [
+      "collect",
+      "enrich"
+    ],
+    "trigger": "workflow_dispatch",
+    "start_date": null,
+    "end_date": null
+  },
+  "stats": {
+    "sources_consulted": [
+      "openalex",
+      "pubmed",
+      "arxiv",
+      "crossref"
+    ],
+    "collection_window": [
+      "2026-11-07",
+      "2026-11-14"
+    ],
+    "articles_found": 375,
+    "articles_new": 373,
+    "articles_duplicate": 2,
+    "possible_duplicates": 2,
+    "collection_errors": 0,
+    "failed_sources": [],
+    "per_source": [
+      {
+        "source": "openalex",
+        "collected": 100,
+        "inserted": 100,
+        "updated": 0,
+        "ignored": 0,
+        "flagged_duplicates": 2,
+        "invalid": 0,
+        "requests": 5,
+        "errors": []
+      },
+      {
+        "source": "pubmed",
+        "collected": 79,
+        "inserted": 78,
+        "updated": 1,
+        "ignored": 0,
+        "flagged_duplicates": 0,
+        "invalid": 0,
+        "requests": 6,
+        "errors": []
+      },
+      {
+        "source": "arxiv",
+        "collected": 98,
+        "inserted": 98,
+        "updated": 0,
+        "ignored": 0,
+        "flagged_duplicates": 0,
+        "invalid": 0,
+        "requests": 3,
+        "errors": []
+      },
+      {
+        "source": "crossref",
+        "collected": 98,
+        "inserted": 97,
+        "updated": 1,
+        "ignored": 0,
+        "flagged_duplicates": 0,
+        "invalid": 0,
+        "requests": 5,
+        "errors": []
+      }
+    ],
+    "crossref_checked": 47,
+    "crossref_confirmed": 0
+  },
+  "errors": [],
+  "messages": []
+}

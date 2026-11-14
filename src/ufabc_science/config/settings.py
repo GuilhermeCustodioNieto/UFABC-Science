@@ -88,6 +88,15 @@ class Settings(BaseSettings):
     auto_publish: bool = False
     auto_publish_max_articles: int = Field(default=10, ge=1, le=100)
 
+    # --- Newsletter por e-mail (Brevo) e site -----------------------------------------
+    site_url: str | None = None  # ex.: https://usuario.github.io/repositorio/
+    subscribe_url: str | None = None  # formulário de inscrição hospedado pelo Brevo
+    brevo_api_key: SecretStr | None = None
+    brevo_list_id: int | None = Field(default=None, ge=1)
+    newsletter_sender_email: str | None = None  # padrão: CONTACT_EMAIL
+    newsletter_sender_name: str = "UFABC Science"
+    newsletter_test_email: str | None = None
+
     # --- Validadores -------------------------------------------------------------------
 
     @field_validator("log_level", mode="before")
@@ -105,6 +114,12 @@ class Settings(BaseSettings):
         "ai_base_url",
         "classification_rules_path",
         "generation_word_limits",
+        "site_url",
+        "subscribe_url",
+        "brevo_api_key",
+        "brevo_list_id",
+        "newsletter_sender_email",
+        "newsletter_test_email",
         mode="before",
     )
     @classmethod
@@ -173,6 +188,11 @@ class Settings(BaseSettings):
             raise ValueError("AI_PROVIDER=openai_compatible exige AI_MODEL.")
         if self.ai_provider == "openai_compatible" and not self.ai_base_url:
             raise ValueError("AI_PROVIDER=openai_compatible exige AI_BASE_URL.")
+        for label, url in (("SITE_URL", self.site_url), ("SUBSCRIBE_URL", self.subscribe_url)):
+            if url and not url.startswith(("https://", "http://")):
+                raise ValueError(f"{label} deve ser uma URL http(s): {url!r}")
+        if self.site_url and not self.site_url.endswith("/"):
+            self.site_url += "/"
         for name, bounds in (self.generation_word_limits or {}).items():
             low, high = bounds
             if low < 0 or high < low:
@@ -199,6 +219,10 @@ class Settings(BaseSettings):
     @property
     def openalex_contact(self) -> str | None:
         return self.openalex_email or self.contact_email
+
+    @property
+    def sender_email(self) -> str | None:
+        return self.newsletter_sender_email or self.contact_email
 
     @property
     def raw_dir(self) -> Path:

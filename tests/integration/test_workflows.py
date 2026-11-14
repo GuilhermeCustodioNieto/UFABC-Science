@@ -25,7 +25,9 @@ def all_steps(workflow: dict[str, Any]) -> list[dict[str, Any]]:
     return [step for job in workflow["jobs"].values() for step in job.get("steps", [])]
 
 
-@pytest.mark.parametrize("name", ["weekly_pipeline.yml", "deploy_pages.yml", "ci.yml"])
+@pytest.mark.parametrize(
+    "name", ["weekly_pipeline.yml", "deploy_pages.yml", "ci.yml", "newsletter.yml"]
+)
 def test_workflow_is_valid_and_hardened(name: str) -> None:
     workflow = load(name)
     assert workflow["name"]
@@ -84,6 +86,41 @@ def test_weekly_pipeline_deploy_job_is_isolated() -> None:
     assert deploy["environment"]["name"] == "github-pages"
     assert "needs.pipeline.outputs.site == 'success'" in deploy["if"]
     assert [s["uses"].split("@")[0] for s in deploy["steps"]] == ["actions/deploy-pages"]
+
+
+def test_weekly_newsletter_runs_after_deploy_and_only_for_new_editions() -> None:
+    workflow = load("weekly_pipeline.yml")
+    job = workflow["jobs"]["newsletter"]
+    assert job["needs"] == ["pipeline", "deploy"]
+    for condition in (
+        "needs.deploy.result == 'success'",
+        "needs.pipeline.outputs.published == 'true'",
+        "vars.BREVO_LIST_ID != ''",
+    ):
+        assert condition in job["if"]
+    assert job["permissions"] == {"contents": "write"}
+    assert job["env"]["BREVO_API_KEY"] == "${{ secrets.BREVO_API_KEY }}"
+    commands = [step.get("run", "") for step in job["steps"]]
+    assert any(c.strip() == "python -m ufabc_science newsletter send" for c in commands)
+    assert any("data_branch.sh commit" in c for c in commands)  # registra o envio único
+    outputs = workflow["jobs"]["pipeline"]["outputs"]
+    assert outputs["published"] == "${{ steps.autopublish.outputs.published }}"
+
+
+def test_manual_newsletter_test_mode_and_confirmed_full_send() -> None:
+    workflow = load("newsletter.yml")
+    assert set(workflow["on"]) == {"workflow_dispatch"}
+    inputs = workflow["on"]["workflow_dispatch"]["inputs"]
+    assert inputs["mode"]["default"] == "teste"
+    assert inputs["mode"]["options"] == ["teste", "assinantes"]
+    job = workflow["jobs"]["send"]
+    # O endereço de teste é um secret (não aparece em entradas nem em logs públicos).
+    assert job["env"]["NEWSLETTER_TEST_EMAIL"] == "${{ secrets.NEWSLETTER_TEST_EMAIL }}"
+    script = next(s["run"] for s in job["steps"] if s.get("name") == "Enviar")
+    assert "newsletter send --test" in script
+    assert 'expected="ENVIAR edicao-' in script
+    commit = next(s for s in job["steps"] if "data_branch.sh commit" in s.get("run", ""))
+    assert "inputs.mode == 'assinantes'" in commit["if"]
 
 
 def test_weekly_pipeline_uses_secrets_only_through_env() -> None:

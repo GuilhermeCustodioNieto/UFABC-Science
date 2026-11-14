@@ -3,8 +3,20 @@
 <section class="hero">
   <h1>Ciência recente, explicada com cuidado.</h1>
   <p class="lead">O UFABC Science seleciona pesquisas recentes em neurociência, computação, engenharias, ciências biológicas e STEM e as apresenta em português para estudantes, pesquisadores e professores da comunidade UFABC.</p>
+  {% if ai_notice %}
+  <p class="hero-note">Iniciativa independente. Os textos são escritos por inteligência artificial e publicados somente depois de passar por checagens automáticas de fidelidade, sem revisão humana. Cada texto indica claramente quando um trabalho ainda não passou por revisão por pares.</p>
+  {% else %}
   <p class="hero-note">Iniciativa independente. Cada texto é revisado por uma pessoa antes da publicação e indica claramente quando um trabalho ainda não passou por revisão por pares.</p>
+  {% endif %}
 </section>
+
+{% if subscribe_url %}
+<section class="subscribe" aria-labelledby="assinar">
+  <h2 id="assinar">Receba toda segunda-feira no seu e-mail</h2>
+  <p>As pesquisas mais interessantes da semana, explicadas em português, em uma leitura de cinco minutos. Grátis.</p>
+  <p><a class="button" href="{{ subscribe_url }}" rel="noopener">Assinar a newsletter</a></p>
+</section>
+{% endif %}
 
 {% if latest %}
 <section class="latest" aria-labelledby="ultima-edicao">

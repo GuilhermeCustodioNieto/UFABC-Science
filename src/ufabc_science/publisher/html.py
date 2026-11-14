@@ -191,9 +191,12 @@ def _environment() -> Environment:
 class SiteWriter:
     """Escreve páginas com caminhos relativos e proteção de diretório."""
 
-    def __init__(self, output_dir: Path, *, ai_notice: bool = False) -> None:
+    def __init__(
+        self, output_dir: Path, *, ai_notice: bool = False, subscribe_url: str | None = None
+    ) -> None:
         self.output_dir = output_dir
         self.ai_notice = AI_NOTICE if ai_notice else None
+        self.subscribe_url = safe_url(subscribe_url)
         self.env = _environment()
         self.written: list[str] = []
 
@@ -224,6 +227,7 @@ class SiteWriter:
             root=root,
             disclaimer=DISCLAIMER,
             ai_notice=self.ai_notice,
+            subscribe_url=self.subscribe_url,
             page_path=relative,
             **context,
         )
@@ -285,7 +289,13 @@ def _write_edition(writer: SiteWriter, view: EditionView, *, preview: bool) -> N
         writer.page(article.path, "article.html", article=article, edition=view, preview=preview)
 
 
-def build_site(session: Session, output_dir: Path, *, timezone_name: str) -> BuildResult:
+def build_site(
+    session: Session,
+    output_dir: Path,
+    *,
+    timezone_name: str,
+    subscribe_url: str | None = None,
+) -> BuildResult:
     """Gera o site público com todas as edições publicadas."""
     tz = ZoneInfo(timezone_name)
     editions = list(
@@ -296,7 +306,11 @@ def build_site(session: Session, output_dir: Path, *, timezone_name: str) -> Bui
         )
     )
     # Aviso permanente quando alguma edição foi publicada sem revisão humana.
-    writer = SiteWriter(output_dir, ai_notice=any(is_automatic(e) for e in editions))
+    writer = SiteWriter(
+        output_dir,
+        ai_notice=any(is_automatic(e) for e in editions),
+        subscribe_url=subscribe_url,
+    )
     writer.prepare()
     views = []
     errors = []

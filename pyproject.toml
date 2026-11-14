@@ -45,6 +45,7 @@ ufabc_science = [
     "infrastructure/migrations/versions/*.py",
     "publisher/templates/*.html",
     "publisher/templates/components/*.html",
+    "publisher/templates/email/*.html",
     "publisher/assets/css/*.css",
     "publisher/assets/js/*.js",
     "processing/rules/*.json",

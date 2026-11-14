@@ -8,6 +8,7 @@
       <ul class="nav">
         <li><a href="{{ root }}index.html">Início</a></li>
         <li><a href="{{ root }}archive/index.html">Edições</a></li>
+        {% if subscribe_url %}<li><a class="button button-small" href="{{ subscribe_url }}" rel="noopener">Assinar</a></li>{% endif %}
       </ul>
     </nav>
   </div>

@@ -57,6 +57,7 @@ jobs:
     timeout-minutes: 45
     outputs:
       site: ${{ steps.site.outcome }}
+      published: ${{ steps.autopublish.outputs.published }}
     env:
       APP_ENV: production
       LOG_LEVEL: INFO
@@ -71,6 +72,7 @@ jobs:
       AI_API_KEY: ${{ secrets.AI_API_KEY || github.token }}
       AUTO_PUBLISH: ${{ vars.AUTO_PUBLISH || 'true' }}
       OUTPUT_DIR: dist
+      SUBSCRIBE_URL: ${{ vars.SUBSCRIBE_URL }}
       OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}
       NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
       INPUT_DAYS: ${{ inputs.days }}
@@ -175,3 +177,50 @@ jobs:
       - name: Implantar
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+
+  # Envia a edição recém-publicada aos assinantes (Brevo), depois de o site estar no ar.
+  # Só roda se a variável BREVO_LIST_ID existir; cada edição é enviada uma única vez.
+  newsletter:
+    needs: [pipeline, deploy]
+    if: ${{ !cancelled() && needs.deploy.result == 'success' && needs.pipeline.outputs.published == 'true' && vars.BREVO_LIST_ID != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      DATA_DIR: persist/data
+      EDITIONS_DIR: persist/editions
+      DATABASE_URL: sqlite:///persist/data/database/ufabc_science.db
+      CONTACT_EMAIL: ${{ vars.CONTACT_EMAIL }}
+      NEWSLETTER_SENDER_EMAIL: ${{ vars.NEWSLETTER_SENDER_EMAIL }}
+      BREVO_LIST_ID: ${{ vars.BREVO_LIST_ID }}
+      BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+      SITE_URL: ${{ vars.SITE_URL || format('https://{0}.github.io/{1}/', github.repository_owner, github.event.repository.name) }}
+    steps:
+      - name: Código
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+
+      - name: Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Dependências
+        run: python -m pip install .
+
+      - name: Recuperar dados persistentes
+        run: bash scripts/data_branch.sh fetch persist
+
+      - name: Enviar newsletter aos assinantes
+        run: python -m ufabc_science newsletter send
+
+      - name: Registrar envio na branch "data"
+        if: ${{ !cancelled() }}
+        env:
+          RUN_LABEL: "${{ github.run_id }}"
+        run: |
+          bash scripts/data_branch.sh commit persist "newsletter: envio $RUN_LABEL"

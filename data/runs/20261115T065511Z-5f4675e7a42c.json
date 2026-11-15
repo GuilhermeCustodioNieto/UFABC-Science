@@ -1,0 +1,121 @@
+{
+  "run_id": "5f4675e7a42c",
+  "status": "success",
+  "started_at": "2026-11-15T06:55:11+00:00",
+  "duration_seconds": 183.63,
+  "parameters": {
+    "days": 7,
+    "sources": [
+      "openalex",
+      "pubmed",
+      "arxiv",
+      "crossref"
+    ],
+    "max_articles": null,
+    "generation_limit": 10,
+    "steps": [
+      "collect",
+      "enrich",
+      "classify",
+      "score",
+      "generate"
+    ],
+    "trigger": "workflow_dispatch",
+    "start_date": null,
+    "end_date": null
+  },
+  "stats": {
+    "sources_consulted": [
+      "openalex",
+      "pubmed",
+      "arxiv",
+      "crossref"
+    ],
+    "collection_window": [
+      "2026-11-08",
+      "2026-11-15"
+    ],
+    "articles_found": 374,
+    "articles_new": 0,
+    "articles_duplicate": 374,
+    "possible_duplicates": 0,
+    "collection_errors": 0,
+    "failed_sources": [],
+    "per_source": [
+      {
+        "source": "openalex",
+        "collected": 100,
+        "inserted": 0,
+        "updated": 0,
+        "ignored": 100,
+        "flagged_duplicates": 0,
+        "invalid": 0,
+        "requests": 5,
+        "errors": []
+      },
+      {
+        "source": "pubmed",
+        "collected": 78,
+        "inserted": 0,
+        "updated": 0,
+        "ignored": 78,
+        "flagged_duplicates": 0,
+        "invalid": 0,
+        "requests": 6,
+        "errors": []
+      },
+      {
+        "source": "arxiv",
+        "collected": 98,
+        "inserted": 0,
+        "updated": 0,
+        "ignored": 98,
+        "flagged_duplicates": 0,
+        "invalid": 0,
+        "requests": 3,
+        "errors": []
+      },
+      {
+        "source": "crossref",
+        "collected": 98,
+        "inserted": 0,
+        "updated": 0,
+        "ignored": 98,
+        "flagged_duplicates": 0,
+        "invalid": 0,
+        "requests": 5,
+        "errors": []
+      }
+    ],
+    "crossref_checked": 0,
+    "crossref_confirmed": 0,
+    "articles_classified": 0,
+    "articles_without_category": 42,
+    "classification_uncertain": 0,
+    "articles_scored": 0,
+    "ai_provider": "openai_compatible",
+    "articles_selected": 10,
+    "contents_generated": 10,
+    "verification_passed": 4,
+    "verification_warning": 6,
+    "verification_failed": 0,
+    "generation_skipped": {
+      "informacao_insuficiente": 26,
+      "limite_de_processamento": 393
+    },
+    "markdown_files": [
+      "persist/data/editorial/pending/article-339.md",
+      "persist/data/editorial/pending/article-341.md",
+      "persist/data/editorial/pending/article-222.md",
+      "persist/data/editorial/pending/article-374.md",
+      "persist/data/editorial/pending/article-126.md",
+      "persist/data/editorial/pending/article-77.md",
+      "persist/data/editorial/pending/article-243.md",
+      "persist/data/editorial/pending/article-62.md",
+      "persist/data/editorial/pending/article-32.md",
+      "persist/data/editorial/pending/article-422.md"
+    ]
+  },
+  "errors": [],
+  "messages": []
+}

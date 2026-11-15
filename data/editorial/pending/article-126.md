@@ -1,8 +1,8 @@
 ---
 schema: ufabc-science/article@1
 article_id: 126
-content_id: 5
-content_version: 1
+content_id: 15
+content_version: 2
 status: pending_review
 categories:
 - ciencias-biologicas
@@ -15,17 +15,14 @@ peer_review_status: verified
 article_type: journal_article
 original_title: 'scMINA: an interpretable workflow for paired scRNA-scATAC multiome integration and regulatory
   prioritization.'
-generated_at: '2026-11-15T06:49:25+00:00'
+generated_at: '2026-11-15T06:56:47+00:00'
 model_provider: openai_compatible
 model_name: gemini-3.6-flash
-prompt_version: 2026-11-v1
+prompt_version: 2026-11-v2
 verification_status: warning
 verification_messages:
 - 'WARNING: O abstract menciona limitações, mas o texto diz que elas não foram informadas.'
-- 'WARNING: O gerador indicou pontos para verificação humana. (As limitações específicas do algoritmo
-  scMINA não constam no resumo fornecido e precisam ser verificadas no artigo completo.; A disponibilidade
-  de código-fonte ou pacote de software não foi especificada no texto.)'
-generated_body_hash: b51aff82479a942be398c027e7f5159b5a1f7e2acc1a90b8ffe8334bbf7b6077
+generated_body_hash: a53d7c88f51c0dad71908250500afea8436d01e1c4cf9a342cfa1ff1a0ee863f
 reviewer: null
 reviewed_at: null
 editorial_notes: null
@@ -33,35 +30,35 @@ warning_justification: null
 edition_slug: null
 ---
 
-# scMINA: novo fluxo de trabalho interpretável para integração de dados multiômicos de célula única
+# scMINA: novo fluxo de trabalho para integração e interpretação de dados multiômicos de célula única
 
 ## Introdução
 
-Um estudo publicado no periódico NAR genomics and bioinformatics apresentou o scMINA (Single-cell Multimodal Integration and Network Attribution), um fluxo de trabalho analítico modular e interpretável. A ferramenta foi desenvolvida para a análise de dados pareados de sequenciamento de RNA de célula única (scRNA-seq) e acessibilidade da cromatina (scATAC-seq). O objetivo principal é investigar a heterogeneidade celular e os mecanismos de regulação gênica associados a doenças complexas.
+As tecnologias multiômicas de célula única permitem analisar simultaneamente o transcriptoma e o estado epigenômico celular. No entanto, a análise conjunta de dados pareados de sequenciamento de RNA de célula única (scRNA-seq) e acessibilidade da cromatina (scATAC-seq) enfrenta grandes desafios computacionais devido a variações técnicas específicas e à complexidade de integração. Para contornar essas limitações, pesquisadores desenvolveram o scMINA (sigla em inglês para single-cell Multimodal Integration and Network Attribution), um fluxo de trabalho analítico modular e interpretável focado no estudo dessas duas modalidades celulares.
 
 ## Contexto científico
 
-Tecnologias multiômicas de célula única que analisam simultaneamente estados transcriptômicos e epigenômicos oferecem oportunidades para compreender o funcionamento celular. No entanto, a análise de dados pareados de scRNA-seq e scATAC-seq apresenta desafios computacionais significativos. Esses desafios incluem variações técnicas específicas de cada modalidade, alta complexidade na integração dos dados e interpretabilidade limitada na inferência dos mecanismos regulatórios downstream.
+O estudo simultâneo do RNA celular e da estrutura da cromatina é essencial para entender a heterogeneidade celular e os mecanismos de regulação gênica em doenças complexas. Contudo, combinar scRNA-seq e scATAC-seq gera dificuldades de interpretação biológica sobre como os genes e fatores de transcrição atuam. O scMINA utiliza estratégias baseadas em inteligência artificial explicável para priorizar genes candidatos e fatores de transcrição ligados às alterações regulatórias e à variabilidade dos estados celulares. A ferramenta corrige variações técnicas e covariáveis, organizando a análise em módulos coordenados para integrar as informações transcriptômicas e epigenômicas de forma sistemática.
 
 ## O que foi investigado?
 
-Como realizar a integração computacional e a interpretação biológica de dados pareados de scRNA-seq e scATAC-seq, contornando variações técnicas e priorizando fatores regulatórios associados a estados celulares e doenças?
+Como integrar eficientemente dados pareados de scRNA-seq e scATAC-seq de célula única e priorizar de forma interpretável os fatores de transcrição e genes candidatos associados à heterogeneidade celular e alterações regulatórias relacionadas a doenças?
 
 ## Como a pesquisa foi realizada?
 
-O scMINA é composto por módulos coordenados destinados à integração multimodal, correção de covariáveis técnicas e priorização de recursos regulatórios. A metodologia utiliza estratégias de atribuição baseadas em inteligência artificial explicável para priorizar genes candidatos e fatores de transcrição. Para testar o fluxo de trabalho, os pesquisadores aplicaram o scMINA a dados multiômicos de célula única provenientes do Seattle Alzheimer's Disease Brain Cell Atlas.
+A ferramenta scMINA é estruturada em módulos coordenados voltados para integração multimodal, correção de covariáveis técnicas e priorização de recursos regulatórios. Ela incorpora técnicas de inteligência artificial explicável para atrelar a atribuição de rede à identificação de genes e fatores de transcrição. Para testar o fluxo de trabalho, os autores aplicaram o scMINA em dados de multiômica de célula única obtidos do Seattle Alzheimer's Disease Brain Cell Atlas, focando na caracterização de populações celulares e feições regulatórias.
 
 ## Principais resultados
 
-Na aplicação aos dados do Seattle Alzheimer's Disease Brain Cell Atlas, o scMINA resolveu de forma robusta as principais populações de células gliais. Além disso, o fluxo de trabalho identificou características regulatórias associadas à patologia da doença de Alzheimer. Os resultados demonstraram que o scMINA combina integração multimodal com priorização regulatória interpretável para a análise sistemática de conjuntos de dados pareados de scRNA-seq e scATAC-seq.
+A aplicação do scMINA aos dados do Seattle Alzheimer's Disease Brain Cell Atlas demonstrou que o fluxo de trabalho foi capaz de resolver de forma robusta as principais populações de células gliais. Além disso, a ferramenta identificou com sucesso características regulatórias diretamente associadas à patologia da doença de Alzheimer. Ao unir a integração multimodal à priorização regulatória interpretável, o scMINA forneceu um fluxo de trabalho prático para a análise sistemática e a interpretação biológica de conjuntos de dados que combinam sequenciamento de RNA e acessibilidade da cromatina em nível de célula única.
 
 ## Limitações
 
-As limitações do estudo e da ferramenta não foram informadas nos dados fornecidos na fonte.
+As limitações específicas do fluxo de trabalho scMINA, bem como eventuais restrições técnicas, computacionais ou de generalização para outros tecidos e conjuntos de dados, não foram informadas na fonte disponibilizada.
 
 ## Por que isso importa?
 
-O estudo é relevante para a comunidade da UFABC por conectar biologia computacional, bioinformática, inteligência artificial e neurociência. A abordagem pode interessar a estudantes e pesquisadores dedicados ao desenvolvimento de algoritmos para análise de dados biológicos complexos e modelagem de redes regulatórias.
+O desenvolvimento do scMINA é de grande interesse para estudantes e pesquisadores da UFABC nas áreas de computação, biotecnologia, neurociência e bioinformática. A combinação de técnicas de inteligência artificial explicável com biologia molecular oferece um exemplo prático de como algoritmos avançados ajudam a desvendar mecanismos de doenças complexas, como o Alzheimer.
 
 ## Referência
 

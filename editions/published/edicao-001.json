@@ -1,0 +1,55 @@
+{
+  "schema": "ufabc-science/edition-publication@1",
+  "edition_number": 1,
+  "slug": "edicao-001",
+  "title": "UFABC Science — Edição 001",
+  "week": "2026-W46",
+  "start_date": "2026-11-09",
+  "end_date": "2026-11-15",
+  "published_at": "2026-11-15T06:58:15.797061+00:00",
+  "published_by": "Publicação automática",
+  "introduction": "Nesta edição, reunimos 4 pesquisas recentes em Computação e Tecnologia e Ciências Biológicas.\n\nOs resumos foram escritos por inteligência artificial a partir dos dados públicos de cada estudo e só entraram na edição depois de passar por todas as checagens automáticas de fidelidade (números, autores, DOI, link e identificação de preprints). **Não houve revisão humana.** Consulte sempre a pesquisa original pelo link em cada texto.",
+  "introduction_reviewer": "Publicação automática",
+  "items": [
+    {
+      "position": 1,
+      "article_id": 339,
+      "editorial_section": "computacao-e-tecnologia",
+      "review_id": 17,
+      "content_hash": "a007cfde5857942498e12d3cc3f098f9254de8d7c8afebc3ad8798a83492a85f",
+      "reviewer": "Publicação automática",
+      "doi": "10.1103/fn99-hq7q",
+      "title": "First full physics benchmark for highly granular calorimeter surrogates"
+    },
+    {
+      "position": 2,
+      "article_id": 341,
+      "editorial_section": "computacao-e-tecnologia",
+      "review_id": 18,
+      "content_hash": "848ccd004dfd3775fcffb47028f083ef456c3f0a4992423f90032fa80adcc107",
+      "reviewer": "Publicação automática",
+      "doi": "10.1088/1572-9494/aea761",
+      "title": "Physics–informed deep learning for soliton dynamics and energy flow control in nonlinear physical systems"
+    },
+    {
+      "position": 3,
+      "article_id": 422,
+      "editorial_section": "computacao-e-tecnologia",
+      "review_id": 20,
+      "content_hash": "3162a990d0c02b049e5557a6811f42819c62e6b87eeb68c170f36ba520a48a56",
+      "reviewer": "Publicação automática",
+      "doi": "10.3390/robotics15110236",
+      "title": "Physics-Informed Deep Neural Network Surrogate for Simulation-Based Prediction of Hybrid Press System Dynamics"
+    },
+    {
+      "position": 4,
+      "article_id": 32,
+      "editorial_section": "ciencias-biologicas",
+      "review_id": 11,
+      "content_hash": "c85acd9532d2c3c0883f8c4abbe411edf4792c58f7ace3f293769ec056e006b0",
+      "reviewer": "Publicação automática",
+      "doi": "10.1186/s40104-026-01527-3",
+      "title": "Leveraging artificial intelligence for livestock genetics and breeding"
+    }
+  ]
+}

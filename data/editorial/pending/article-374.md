@@ -1,8 +1,8 @@
 ---
 schema: ufabc-science/article@1
 article_id: 374
-content_id: 4
-content_version: 1
+content_id: 14
+content_version: 2
 status: pending_review
 categories:
 - computacao-e-tecnologia
@@ -14,19 +14,14 @@ peer_review_status: preprint
 article_type: preprint
 original_title: 'Open-BEATBox: an open-source autonomous operant chamber for high-throughput data acquisition
   of complex behaviour'
-generated_at: '2026-11-15T06:49:11+00:00'
+generated_at: '2026-11-15T06:56:27+00:00'
 model_provider: openai_compatible
 model_name: gemini-3.6-flash
-prompt_version: 2026-11-v1
+prompt_version: 2026-11-v2
 verification_status: warning
 verification_messages:
 - 'WARNING: O abstract menciona limitações, mas o texto diz que elas não foram informadas.'
-- 'WARNING: O gerador indicou pontos para verificação humana. (Verificar se o trabalho foi submetido ou
-  aprovado em periódico com revisão por pares após a data de publicação do preprint.; Conferir no texto
-  completo do artigo se foram detalhadas limitações técnicas ou operacionais do sistema Open-BEATBox que
-  não constam no resumo.; Garantir a manutenção das nomenclaturas técnicas em inglês e português conforme
-  a prática da área.)'
-generated_body_hash: 270d496fbf50559f475b560b287d453e2ce195ad88fe2ba1cb5ada54b78bf579
+generated_body_hash: ef8d50e056e47cd3d3e426362332b67c6733f0ad0a22d0810036c38983324f74
 reviewer: null
 reviewed_at: null
 editorial_notes: null
@@ -34,35 +29,35 @@ warning_justification: null
 edition_slug: null
 ---
 
-# Open-BEATBox: plataforma de código aberto permite avaliação comportamental autônoma e contínua em camundongos
+# Open-BEATBox: plataforma de código aberto automatiza testes comportamentais em camundongos
 
 ## Introdução
 
-Um estudo disponibilizado como preprint apresenta a Open-BEATBox (Open Platform for Experimental Neuroscience Behavioural and Autonomous Box), uma plataforma de caixa-moradia de código aberto projetada para a avaliação contínua e autônoma do comportamento cognitivo complexo em camundongos. Por se tratar de um preprint, a publicação ainda não passou pelo processo de revisão por pares. O novo sistema busca contornar as limitações dos testes operantes convencionais, que costumam exigir intervenção humana frequente, sessões diárias curtas e restrição alimentar ou hídrica.
+A neurociência comportamental utiliza frequentemente modelos de roedores para investigar os mecanismos neurais da cognição. Contudo, os testes operantes convencionais costumam ser restritos a sessões diárias curtas, exigindo intervenção frequente de pesquisadores e métodos como restrição hídrica ou alimentar. Como este trabalho é um preprint, ressalta-se que o artigo ainda não passou por revisão por pares. A pesquisa apresenta a Open-BEATBox, uma nova plataforma autônoma para avaliação contínua em camundongos.
 
 ## Contexto científico
 
-A neurociência comportamental recorre frequentemente a modelos de roedores para investigar mecanismos neurais associados à cognição. Contudo, as abordagens operantes tradicionais limitam-se a breves sessões de teste diárias, o que pode interromper os ritmos circadianos naturais dos animais e introduzir variabilidade comportamental devido ao manuseio e aos horários experimentais. A plataforma Open-BEATBox foi desenhada de forma modular e customizável para permitir que os animais residam no próprio ambiente de teste, viabilizando o monitoramento longitudinal e a integração com tecnologias de neuromodulação e registro neural crônico.
+Testes operantes convencionais impõem limitações na amostragem comportamental, alteram os padrões circadianos naturais e introduzem variabilidade devido ao manuseio frequente dos animais. Para superar essas barreiras, a Open-BEATBox foi projetada como uma plataforma de código aberto (open-source) integrada à gaiola-moradia dos roedores. O sistema permite o monitoramento contínuo e no próprio ritmo do animal, sendo modular e customizável para integrar abordagens modernas, como registros neurais crônicos e tecnologias de neuromodulação.
 
 ## O que foi investigado?
 
-Como a implementação da plataforma autônoma Open-BEATBox impacta a coleta de dados comportamentais, a carga de trabalho dos pesquisadores e o bem-estar animal em tarefas de cognição complexa em camundongos?
+É possível desenvolver uma plataforma autônoma de código aberto que permita a avaliação longitudinal e contínua do comportamento cognitivo complexo em camundongos, reduzindo a intervenção humana sem prejudicar o bem-estar animal?
 
 ## Como a pesquisa foi realizada?
 
-Os pesquisadores desenvolveram um desenho experimental utilizando a plataforma Open-BEATBox instalada diretamente na caixa-moradia dos animais. O desempenho do sistema foi avaliado por meio de uma tarefa de aprendizado por reversão visual (visual reversal-learning task) e pela aplicação de paradigmas de tomada de decisão baseada em incerteza, comparando a amostragem autônoma contínua ao formato tradicional baseado em sessões.
+Trata-se de um estudo experimental no qual a plataforma Open-BEATBox foi testada com camundongos residindo no próprio ambiente de testes durante o experimento. Os pesquisadores avaliaram o desempenho dos animais em uma tarefa visual de aprendizagem por reversão (reversal learning) e em paradigmas de tomada de decisão baseada em incerteza. Os resultados obtidos valem para as condições experimentais testadas.
 
 ## Principais resultados
 
-Nas condições experimentais avaliadas, a amostragem contínua na Open-BEATBox gerou aproximadamente dez vezes mais ensaios concluídos durante o aprendizado de reversão em comparação com os protocolos convencionais baseados em sessões. O uso da plataforma reduziu a carga de trabalho do experimentador e não apresentou evidências de efeitos adversos maiores nas medidas de bem-estar animal analisadas. O estudo também demonstrou a flexibilidade da ferramenta para executar tarefas cognitivas adicionais, como a tomada de decisão sob incerteza.
+Na tarefa de aprendizagem por reversão visual, a testagem autônoma e contínua gerou aproximadamente ten (dez) vezes mais tentativas concluídas do que os protocolos convencionais baseados em sessões diárias. A plataforma reduziu a carga de trabalho dos pesquisadores sem demonstrar evidências de efeitos adversos significativos nas medidas de bem-estar animal avaliadas. A flexibilidade do sistema também permitiu a implementação de outros paradigmas cognitivos, como tarefas de tomada de decisão sob incerteza.
 
 ## Limitações
 
-As limitações específicas do hardware ou do desenho experimental não foram informadas explicitamente no texto da fonte. Adicionalmente, por ser um preprint, os resultados são preliminares e não foram validados por revisão por pares.
+As limitações específicas da plataforma ou do desenho experimental não foram detalhadas na fonte fornecida.
 
 ## Por que isso importa?
 
-A proposta da Open-BEATBox é relevante para a comunidade acadêmica da UFABC, especialmente para estudantes e pesquisadores das áreas de Neurociência, Engenharia e Ciência da Computação. O desenvolvimento de ferramentas científicas de código aberto (open-source hardware) estimula a inovação tecnológica acessível, o desenvolvimento de novos protocolos de pesquisa e o estudo interdisciplinar de sistemas comportamentais.
+O estudo é de interesse para a comunidade da UFABC, especialmente para estudantes dos cursos de Neurociência, Ciência da Computação e Engenharias. O uso de plataformas de código aberto estimula o desenvolvimento de soluções acessíveis, modulares e reprodutíveis para a pesquisa científica e a automação de laboratórios.
 
 ## Referência
 

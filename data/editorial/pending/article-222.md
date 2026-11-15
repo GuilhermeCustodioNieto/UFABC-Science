@@ -1,8 +1,8 @@
 ---
 schema: ufabc-science/article@1
 article_id: 222
-content_id: 3
-content_version: 1
+content_id: 13
+content_version: 2
 status: pending_review
 categories:
 - ciencias-biologicas
@@ -13,17 +13,14 @@ doi: null
 peer_review_status: preprint
 article_type: preprint
 original_title: 'MutAtlas: A PDB-Wide Energy-Guided Atlas of Protein Mutation Effects'
-generated_at: '2026-11-15T06:48:57+00:00'
+generated_at: '2026-11-15T06:56:17+00:00'
 model_provider: openai_compatible
 model_name: gemini-3.6-flash
-prompt_version: 2026-11-v1
+prompt_version: 2026-11-v2
 verification_status: warning
 verification_messages:
 - 'WARNING: Registro sem DOI: confirme a fonte pelo link original.'
-- 'WARNING: O gerador indicou pontos para verificação humana. (Verificar se o trabalho foi submetido ou
-  aceito em periódico revisado por pares após a data de publicação do preprint.; Confirmar se existem
-  limitações metodológicas adicionais detalhadas no artigo completo que não foram mencionadas no resumo.)'
-generated_body_hash: f12acf3e35a15cdbfaf909d4dc88afd31f99bcef5c94132a4ef489daf5b1dbac
+generated_body_hash: 657b087e3d2391af29036abbee04612f5c0761f7341635dff79aa37de06591ee
 reviewer: null
 reviewed_at: null
 editorial_notes: null
@@ -31,35 +28,35 @@ warning_justification: null
 edition_slug: null
 ---
 
-# Framework destila preferências de mutações de proteínas sem supervisão direta
+# Novo arcabouço computacional destila dados teóricos para prever efeitos de mutações em proteínas
 
 ## Introdução
 
-A predição dos efeitos de mutações em proteínas desempenha um papel fundamental tanto na engenharia de proteínas quanto na interpretação de variantes associadas a doenças. Embora os dados experimentais de mutação sejam precisos, eles permanecem extremamente escassos. Para contornar essa limitação e fornecer sinais suplementares escaláveis, pesquisadores desenvolveram um conjunto de dados ampliado cobrindo estruturas do Protein Data Bank (PDB). Por se tratar de um preprint disponibilizado no arXiv, o estudo ainda não passou pelo processo de revisão por pares.
+A previsão do efeito de mutações em proteínas é central para a engenharia de proteínas e para a interpretação de variantes ligadas a doenças. No entanto, embora precisos, os dados obtidos experimentalmente são escassos. Para enfrentar essa limitação, pesquisadores desenvolveram uma nova estratégia de integração computacional. O trabalho foi publicado em formato preprint e ainda não passou por revisão por pares.
 
 ## Contexto científico
 
-A modelagem computacional da estrutura e função das proteínas utiliza diferentes abordagens teóricas. Os modelos baseados em física calculam energias de estabilidade, enquanto os modelos de linguagem de proteínas e os modelos de dobramento inverso utilizam aprendizado de máquina para inferir preferências sequenciais ou estruturais. Cada uma dessas classes apresenta vieses indutivos próprios. A integração desses sinais é desafiadora devido às discrepâncias sistemáticas entre as fontes, que refletem premissas teóricas conflitantes e não apenas ruído aleatório. Entender como harmonizar essas diferentes visões é essencial para aprimorar a predição computacional sem depender exclusivamente de extensos ensaios de laboratório.
+No campo da biologia estrutural e computacional, diferentes ferramentas são usadas para prever alterações proteicas: modelos de energia baseados em física, modelos de linguagem de proteínas e modelos de dobramento inverso. Ao analisar essas ferramentas sob uma representação unificada de preferência de mutação, constatou-se uma divergência sistemática entre elas, originada de vieses indutivos conflitantes de cada modelo e não de mero ruído aleatório.
 
 ## O que foi investigado?
 
-Como integrar e harmonizar sinais computacionais de mutações pontuais provenientes de modelos de energia física, modelos de linguagem de proteínas e modelos de dobramento inverso, superando suas divergências estruturais sem utilizar rótulos experimentais durante o treinamento?
+Como integrar os sinais provenientes de múltiplos modelos computacionais divergentes, sem utilizar rótulos experimentais no treinamento, para aprimorar a previsão não supervisionada dos efeitos de mutações em proteínas?
 
 ## Como a pesquisa foi realizada?
 
-Os pesquisadores construíram um banco de dados enumerando exaustivamente substituições de sítio único em estruturas de proteínas resolvidas experimentalmente do PDB. Alinharam sinais de modelos de energia física, modelos de linguagem de proteínas e modelos de dobramento inverso sob uma representação unificada de preferência de mutação. Em seguida, desenvolveram um framework não supervisionado de destilação de preferências de mutação de múltiplas fontes. O método aprende a partir de preferências relativas de mutação e modela explicitamente as divergências entre as fontes, sem empregar rótulos experimentais de mutação na etapa de treinamento. O desempenho foi avaliado no benchmark ProteinGym.
+Os autores construíram um conjunto de dados abrangendo todo o Protein Data Bank (PDB), enumerando exaustivamente substituições de sítio único em estruturas proteicas resolvidas experimentalmente. Em seguida, desenvolveram um arcabouço não supervisionado de destilação de preferências de mutação a partir de múltiplas fontes, capaz de aprender com as preferências relativas enquanto modela de forma explícita as divergências entre os modelos avaliados.
 
 ## Principais resultados
 
-A análise em grande escala revelou diferenças substanciais na consistência, concentração e padrões de substituição entre os diferentes modelos avaliados, confirmando que as divergências decorrem de vieses indutivos conflitantes, e não de ruído aleatório. Ao ser testado na plataforma ProteinGym, o framework não supervisionado proposto alcançou o melhor desempenho geral entre as linhas de base de zero-shot (sem treinamento supervisionado) avaliadas e estratégias ingênuas de fusão de múltiplas fontes. Os autores disponibilizaram publicamente o conjunto de dados e o pipeline de avaliação para apoiar pesquisas reproduzíveis sobre os efeitos de mutações em proteínas sob condições testadas.
+Sem usar rótulos experimentais durante o treinamento, o método proposto atingiu o melhor desempenho geral na plataforma ProteinGym quando comparado às abordagens zero-shot de linha de base e estratégias simples de fusão de fontes. A análise revelou diferenças significativas na consistência, concentração e padrões de substituição entre os modelos originais. Os autores disponibilizaram publicamente o conjunto de dados e o pipeline de avaliação.
 
 ## Limitações
 
-As limitações específicas do método, como eventuais restrições a determinados tipos de proteínas ou custos computacionais de escala, não foram informadas explicitamente no texto da fonte. Por ser um trabalho em estágio de preprint, o estudo ainda não passou pela revisão por pares, devendo seus resultados ser interpretados com cautela.
+As limitações específicas do método e dos dados não foram informadas no texto fornecido. Além disso, por se tratar de um preprint, o estudo ainda não passou pela revisão por pares.
 
 ## Por que isso importa?
 
-O estudo é relevante para a comunidade da UFABC por integrar áreas de ciências biológicas, bioinformática e ciência da computação. Alunos e pesquisadores de cursos como Biotecnologia, Ciência da Computação e Engenharia de Informação podem se interessar pelas abordagens não supervisionadas de aprendizado de máquina aplicadas à biologia estrutural.
+O estudo é de interesse para estudantes e pesquisadores da UFABC vinculados aos cursos de Ciência da Computação, Biotecnologia e Ciências Biológicas, especialmente aqueles dedicados ao desenvolvimento de algoritmos de aprendizado de máquina aplicados à biologia estrutural e bioinformática.
 
 ## Referência
 

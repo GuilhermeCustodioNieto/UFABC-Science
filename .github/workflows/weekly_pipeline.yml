@@ -70,6 +70,9 @@ jobs:
       AI_API_KEY: ${{ secrets.AI_API_KEY }}
       # Modelos do Gemini que "pensam" gastam tokens de saída com o raciocínio.
       AI_MAX_TOKENS: ${{ vars.AI_MAX_TOKENS || '8000' }}
+      # Respostas com raciocínio podem passar de 1 min; o Gemini às vezes responde 503.
+      AI_TIMEOUT: ${{ vars.AI_TIMEOUT || '240' }}
+      AI_MAX_RETRIES: ${{ vars.AI_MAX_RETRIES || '3' }}
       AUTO_PUBLISH: ${{ vars.AUTO_PUBLISH || 'true' }}
       OUTPUT_DIR: dist
       OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}

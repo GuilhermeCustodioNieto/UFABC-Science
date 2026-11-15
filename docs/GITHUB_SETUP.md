@@ -34,6 +34,7 @@
 | `AI_MODEL` | nome do modelo | Não (padrão `gemini-3.8-flash`) |
 | `AI_BASE_URL` | URL da API compatível | Não (padrão Google Gemini) |
 | `AI_MAX_TOKENS` | `8000` | Não |
+| `AI_TIMEOUT` | `240` (segundos por requisição) | Não |
 
 Sem nenhuma variável de IA, o workflow usa o **Google Gemini** (cota gratuita) com a chave do
 secret `AI_API_KEY`. Não crie `AI_PROVIDER=mock` se quiser publicação automática:

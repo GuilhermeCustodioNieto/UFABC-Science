@@ -62,7 +62,7 @@ _BASE_RULES = f"""Regras obrigatórias:
 
 ARTICLE_GENERATION_PROMPT = PromptTemplate(
     name="article_generation_prompt",
-    version="2026-11-v1",
+    version="2026-11-v2",
     system=(
         "Você é um editor de divulgação científica do UFABC Science, uma iniciativa "
         "independente voltada a estudantes universitários. Escreva em português brasileiro, "
@@ -87,7 +87,12 @@ Campos do JSON:
 - findings: principais resultados, apenas os que aparecem nos dados.
 - limitations: limitações declaradas ou a indicação de que não foram informadas.
 - ufabc_relevance: por que isso pode interessar à comunidade da UFABC.
-- uncertainty_notes: lista de pontos que o editor humano deve verificar.
+- uncertainty_notes: lista de pontos em que ESTE texto pode conter erro ou interpretação
+  duvidosa em relação aos dados fornecidos (ex.: termo técnico de tradução incerta, resultado
+  ambíguo no abstract). Use lista vazia [] quando o texto apenas reproduz os dados fornecidos.
+  Não inclua ressalvas genéricas que valem para qualquer artigo, como conferir o texto
+  completo, a data de publicação, limitações não descritas no abstract ou o status de
+  revisão por pares: o sistema já trata esses pontos.
 
 Não inclua referência bibliográfica, links ou DOI: eles são adicionados pelo sistema.
 

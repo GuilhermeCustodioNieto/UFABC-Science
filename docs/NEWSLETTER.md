@@ -1,68 +1,60 @@
 # Newsletter por e-mail
 
-Toda segunda-feira, depois que a edição é publicada e o site entra no ar, o workflow
-**Pipeline semanal** agenda a edição no [Kit](https://kit.com/) para todos os assinantes. O
-envio sai cerca de 2 minutos depois.
-
-O plano gratuito do Kit permite até 10.000 assinantes, envios ilimitados, formulários e
-acesso à API ([central de ajuda do Kit](https://intercom.help/convertkit/en/articles/16627071-the-kit-free-plan)).
-O Kit hospeda o formulário de inscrição e cuida do descadastro, então o projeto não guarda
-nenhum endereço de assinante.
+Sem plataforma de e-mail: o GitHub Actions envia a edição **direto pelo Gmail do projeto**
+(SMTP), para uma lista pequena de assinantes guardada num secret do GitHub. Pensado para até
+algumas dezenas de pessoas; o Gmail aceita cerca de 500 destinatários por dia.
 
 ```text
-autopublish → site no ar → newsletter send → POST /v4/broadcasts (Kit) → todos os assinantes
+autopublish → site no ar → newsletter send → smtp.gmail.com → cada assinante (uma mensagem por pessoa)
 ```
 
-- Cada edição é enviada **uma única vez**. A marca fica em `editions/sent/<slug>.json`, na
-  branch `data`.
-- O e-mail usa o mesmo texto aprovado do site, com links para as páginas do site. O template
-  padrão do Kit envolve esse conteúdo e acrescenta o link de descadastro e o endereço
-  exigidos por lei.
-- As edições publicadas automaticamente levam o aviso de que não houve revisão humana.
-- Sem o secret `KIT_API_KEY`, o envio é pulado sem erro e o resto do pipeline segue normal.
+- Toda segunda, depois que a edição é publicada e o site entra no ar, o **Pipeline semanal**
+  envia a edição a todos da lista.
+- Cada assinante recebe uma mensagem só para ele, então ninguém vê o endereço dos outros.
+- Cada edição é enviada **uma única vez**. A marca fica em `editions/sent/<slug>.json` na
+  branch `data`, apenas com contagens, sem endereços.
+- Senha e endereços ficam só em *secrets* e nunca aparecem nos logs.
+- Sem o secret `SMTP_PASSWORD`, o envio é pulado sem erro.
 
-## 1. Kit (uma vez)
+## Assinar e cancelar
 
-Os nomes de menu do painel mudam com o tempo; procure pelos termos abaixo.
+- O botão **"Assinar"** do site abre um e-mail pronto, endereçado ao `CONTACT_EMAIL`, com o
+  assunto "Quero assinar a newsletter UFABC Science". A pessoa só precisa enviar.
+- Todo e-mail da newsletter tem no rodapé um link **"Cancelar inscrição"**, que funciona do
+  mesmo jeito. O cabeçalho `List-Unsubscribe` faz o Gmail mostrar o botão "Cancelar
+  inscrição" dele.
+- Quando chegar um pedido, edite o secret `NEWSLETTER_RECIPIENTS`, adicionando ou removendo o
+  endereço.
 
-1. Crie uma conta gratuita em <https://kit.com/> com o e-mail do projeto. Confirme o
-   remetente (*sending email address*) quando o Kit pedir. Os envios saem dele.
-2. Crie um **formulário** ou uma **landing page** de inscrição e copie o **link público**
-   dela. Esse link é o `SUBSCRIBE_URL`.
-3. Gere uma **chave de API v4** nas configurações de desenvolvedor da conta (*Developer* /
-   *API*). Essa chave é o `KIT_API_KEY`.
-4. (Opcional, para testes) Crie uma **tag** chamada "teste", aplique-a ao seu próprio
-   cadastro e anote o **ID numérico** da tag (aparece na URL da página da tag). Esse ID é o
-   `KIT_TEST_TAG_ID`.
+## Configuração (uma vez)
 
-## 2. GitHub
-
-**Settings → Secrets and variables → Actions**:
+1. **Senha de app do Gmail do projeto.** A verificação em duas etapas precisa estar ativa.
+   Entre em <https://myaccount.google.com/apppasswords> logado no Gmail do projeto, crie uma
+   senha de app (nome: "UFABC Science") e copie os 16 caracteres.
+2. **GitHub → Settings → Secrets and variables → Actions**:
 
 | Tipo | Nome | Valor |
 |---|---|---|
-| Secret | `KIT_API_KEY` | chave de API v4 do passo 1.3 |
-| Variable | `SUBSCRIBE_URL` | link do formulário do passo 1.2 (exibe o botão "Assinar" no site) |
-| Variable | `KIT_TEST_TAG_ID` | opcional, ID da tag do passo 1.4 |
-| Variable | `NEWSLETTER_SENDER_EMAIL` | opcional; o padrão é o remetente da conta Kit |
-| Variable | `SITE_URL` | opcional; o padrão é `https://<usuário>.github.io/<repositório>/` |
+| Variable | `CONTACT_EMAIL` | o Gmail do projeto (já existe: é o remetente e o destino do botão "Assinar") |
+| Secret | `SMTP_PASSWORD` | a senha de app do passo 1 |
+| Secret | `NEWSLETTER_RECIPIENTS` | os e-mails dos assinantes, separados por vírgula ou um por linha |
+| Secret | `NEWSLETTER_TEST_EMAIL` | opcional: seu e-mail pessoal para testes (padrão: o Gmail do projeto) |
+
+Opcionais: `SITE_URL` (padrão `https://<usuário>.github.io/<repositório>/`), `SMTP_USERNAME`
+(padrão `CONTACT_EMAIL`) e `SUBSCRIBE_URL` (para trocar o link do botão).
 
 O botão "Assinar" aparece no site na próxima vez que ele for gerado: na segunda-feira ou numa
 execução manual do **Pipeline semanal**.
 
-## 3. Primeiro envio de teste
+## Teste
 
-**Sem tag:** inscreva-se pelo seu próprio formulário e confirme o e-mail. Enquanto você for o
-único assinante, rode Actions → **Enviar newsletter** com `mode: assinantes`, `edition: N` e
-`confirm: ENVIAR edicao-00N` (N é a edição mais recente publicada). Isso marca a edição N
-como enviada; as próximas edições continuam saindo normalmente às segundas.
+Actions → **Enviar newsletter** → *Run workflow* com `mode: teste`. A edição publicada mais
+recente vai para `NEWSLETTER_TEST_EMAIL` (ou para o Gmail do projeto), com "[TESTE]" no
+assunto. Nada é registrado e ninguém da lista recebe.
 
-**Com tag** (depois que houver outros assinantes): `mode: teste`. O envio vai só para quem
-tem a tag `KIT_TEST_TAG_ID`, com "[TESTE]" no assunto, e nada é registrado.
+## Reenviar aos assinantes manualmente
 
-## 4. Reenviar aos assinantes manualmente
-
-Se o envio de segunda falhar (por exemplo, chave errada), corrija o problema e rode
+Se o envio de segunda falhar (por exemplo, senha errada), corrija o problema e rode
 **Enviar newsletter** com `mode: assinantes`, `edition: N` e `confirm: ENVIAR edicao-00N`.
 Edições já enviadas são recusadas.
 
@@ -70,14 +62,15 @@ Edições já enviadas são recusadas.
 
 ```bash
 python -m ufabc_science newsletter preview            # gera build/preview/newsletter/<slug>.html
-python -m ufabc_science newsletter send --test        # assinantes com a tag de teste
-python -m ufabc_science newsletter send --edition 3   # todos os assinantes (uma vez)
+python -m ufabc_science newsletter send --test        # só para NEWSLETTER_TEST_EMAIL
+python -m ufabc_science newsletter send --edition 3   # para a lista (uma vez)
 ```
 
-## Limitações conhecidas
+## Limitações
 
-- Os limites do plano gratuito são definidos pelo Kit e podem mudar.
-- Não está verificado se o Kit aceita um `@gmail.com` como remetente sem prejudicar a
-  entrega, nem se o plano gratuito exibe a marca do Kit no e-mail.
-- O agendamento usa `send_at` alguns minutos no futuro. Se o Kit devolver a newsletter como
-  rascunho, o comando falha e não marca a edição como enviada.
+- E-mails enviados por um Gmail novo para muitas pessoas podem cair no spam nas primeiras
+  semanas. Peça aos assinantes que marquem o e-mail como "não é spam" ou adicionem o
+  remetente aos contatos.
+- O endereço do projeto aparece no site (botão "Assinar") e pode receber spam.
+- Se o envio falhar para alguém, a edição fica marcada como enviada para não duplicar para os
+  demais. O resumo da execução mostra quantas falhas houve.

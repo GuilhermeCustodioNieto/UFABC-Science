@@ -178,8 +178,8 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
 
-  # Envia a edição recém-publicada aos assinantes (Kit), depois de o site estar no ar.
-  # Sem o secret KIT_API_KEY, termina sem enviar; cada edição é enviada uma única vez.
+  # Envia a edição recém-publicada aos assinantes pelo Gmail do projeto (SMTP), depois de o
+  # site estar no ar. Sem o secret SMTP_PASSWORD, termina sem enviar; uma vez por edição.
   newsletter:
     needs: [pipeline, deploy]
     if: ${{ !cancelled() && needs.deploy.result == 'success' && needs.pipeline.outputs.published == 'true' }}
@@ -191,8 +191,9 @@ jobs:
       DATA_DIR: persist/data
       EDITIONS_DIR: persist/editions
       DATABASE_URL: sqlite:///persist/data/database/ufabc_science.db
-      NEWSLETTER_SENDER_EMAIL: ${{ vars.NEWSLETTER_SENDER_EMAIL }}
-      KIT_API_KEY: ${{ secrets.KIT_API_KEY }}
+      CONTACT_EMAIL: ${{ vars.CONTACT_EMAIL }}
+      SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+      NEWSLETTER_RECIPIENTS: ${{ secrets.NEWSLETTER_RECIPIENTS }}
       SITE_URL: ${{ vars.SITE_URL || format('https://{0}.github.io/{1}/', github.repository_owner, github.event.repository.name) }}
     steps:
       - name: Código

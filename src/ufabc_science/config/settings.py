@@ -88,12 +88,17 @@ class Settings(BaseSettings):
     auto_publish: bool = False
     auto_publish_max_articles: int = Field(default=10, ge=1, le=100)
 
-    # --- Newsletter por e-mail (Kit) e site -------------------------------------------
+    # --- Newsletter por e-mail (SMTP do Gmail do projeto) e site ----------------------
     site_url: str | None = None  # ex.: https://usuario.github.io/repositorio/
-    subscribe_url: str | None = None  # formulário/página de inscrição hospedada pelo Kit
-    kit_api_key: SecretStr | None = None
-    kit_test_tag_id: int | None = Field(default=None, ge=1)  # assinantes que recebem testes
-    newsletter_sender_email: str | None = None  # padrão: remetente da conta Kit
+    subscribe_url: str | None = None  # padrão: mailto: para CONTACT_EMAIL
+    smtp_host: str = "smtp.gmail.com"
+    smtp_port: int = Field(default=465, ge=1, le=65535)  # 465 = SSL; 587 = STARTTLS
+    smtp_username: str | None = None  # padrão: CONTACT_EMAIL
+    smtp_password: SecretStr | None = None  # senha de app do Gmail
+    # Assinantes separados por vírgula, ponto e vírgula ou linha. Secret: nunca é impresso.
+    newsletter_recipients: SecretStr | None = None
+    newsletter_test_email: str | None = None  # padrão: o próprio remetente
+    newsletter_sender_name: str = "UFABC Science"
 
     # --- Validadores -------------------------------------------------------------------
 
@@ -114,9 +119,10 @@ class Settings(BaseSettings):
         "generation_word_limits",
         "site_url",
         "subscribe_url",
-        "kit_api_key",
-        "kit_test_tag_id",
-        "newsletter_sender_email",
+        "smtp_username",
+        "smtp_password",
+        "newsletter_recipients",
+        "newsletter_test_email",
         mode="before",
     )
     @classmethod
@@ -218,6 +224,25 @@ class Settings(BaseSettings):
         return self.openalex_email or self.contact_email
 
     @property
+    def sender_address(self) -> str | None:
+        return self.smtp_username or self.contact_email
+
+    @property
+    def subscribe_link(self) -> str | None:
+        """Link do botão "Assinar": ``SUBSCRIBE_URL`` ou um e-mail pronto para o projeto."""
+        if self.subscribe_url:
+            return self.subscribe_url
+        if self.contact_email:
+            return newsletter_mailto(self.contact_email, "Quero assinar a newsletter")
+        return None
+
+    @property
+    def unsubscribe_link(self) -> str | None:
+        if self.contact_email:
+            return newsletter_mailto(self.contact_email, "Cancelar inscrição na newsletter")
+        return None
+
+    @property
     def raw_dir(self) -> Path:
         return self.data_dir / "raw"
 
@@ -232,6 +257,12 @@ class Settings(BaseSettings):
     @property
     def lock_path(self) -> Path:
         return self.data_dir / "database" / "pipeline.lock"
+
+
+def newsletter_mailto(address: str, subject: str) -> str:
+    from urllib.parse import quote
+
+    return f"mailto:{address}?subject={quote(subject + ' UFABC Science')}"
 
 
 @lru_cache(maxsize=1)

@@ -1,1 +1,1 @@
-"""Envio da newsletter por e-mail (Kit)."""
+"""Envio da newsletter por e-mail (SMTP do Gmail do projeto)."""

@@ -41,7 +41,7 @@ from ufabc_science.infrastructure.database import (
     init_database,
     session_scope,
 )
-from ufabc_science.newsletter.kit import NewsletterError
+from ufabc_science.newsletter.mailer import NewsletterError
 from ufabc_science.pipeline.lock import ConcurrentRunError
 
 logger = logging.getLogger("ufabc_science.cli")
@@ -634,7 +634,7 @@ def _cmd_edition_publish(args: argparse.Namespace, settings: Settings) -> int:
                 session,
                 settings.output_dir,
                 timezone_name=settings.timezone,
-                subscribe_url=settings.subscribe_url,
+                subscribe_url=settings.subscribe_link,
             )
         print(f"Site gerado em {result.output_dir.as_posix()} ({len(result.pages)} páginas).")
     finally:
@@ -698,7 +698,7 @@ def _cmd_site_build(args: argparse.Namespace, settings: Settings) -> int:
                 session,
                 settings.output_dir,
                 timezone_name=settings.timezone,
-                subscribe_url=settings.subscribe_url,
+                subscribe_url=settings.subscribe_link,
             )
     finally:
         engine.dispose()
@@ -784,8 +784,8 @@ def _cmd_newsletter_send(args: argparse.Namespace, settings: Settings) -> int:
 
     from ufabc_science.newsletter.service import send_newsletter
 
-    if args.skip_if_unconfigured and not settings.kit_api_key:
-        print("Newsletter não configurada (KIT_API_KEY ausente): nenhum e-mail enviado.")
+    if args.skip_if_unconfigured and not settings.smtp_password:
+        print("Newsletter não configurada (SMTP_PASSWORD ausente): nenhum e-mail enviado.")
         return EXIT_OK
     engine, factory = open_database(settings)
     try:
@@ -1033,7 +1033,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--date", type=_date, help="Data de referência AAAA-MM-DD (padrão: hoje).")
     p.set_defaults(handler=_cmd_autopublish)
 
-    p = sub.add_parser("newsletter", help="Newsletter por e-mail (Kit).")
+    p = sub.add_parser("newsletter", help="Newsletter por e-mail (SMTP do projeto).")
     nl = p.add_subparsers(dest="newsletter_command", metavar="AÇÃO", required=True)
     n = nl.add_parser("preview", help="Gera o HTML do e-mail localmente (não envia).")
     n.add_argument("--edition", type=int, help="Padrão: a edição publicada mais recente.")
@@ -1041,12 +1041,14 @@ def build_parser() -> argparse.ArgumentParser:
     n = nl.add_parser("send", help="Envia a edição aos assinantes (uma vez) ou um teste.")
     n.add_argument("--edition", type=int, help="Padrão: a edição publicada mais recente.")
     n.add_argument(
-        "--test", action="store_true", help="Envia só aos assinantes com a tag KIT_TEST_TAG_ID."
+        "--test",
+        action="store_true",
+        help="Envia só para NEWSLETTER_TEST_EMAIL (padrão: o remetente).",
     )
     n.add_argument(
         "--skip-if-unconfigured",
         action="store_true",
-        help="Termina sem erro se KIT_API_KEY não estiver definida.",
+        help="Termina sem erro se SMTP_PASSWORD não estiver definida.",
     )
     n.set_defaults(handler=_cmd_newsletter_send)
 

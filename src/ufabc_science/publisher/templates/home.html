@@ -15,6 +15,7 @@
   <h2 id="assinar">Receba toda segunda-feira no seu e-mail</h2>
   <p>As pesquisas mais interessantes da semana, explicadas em português, em uma leitura de cinco minutos. Grátis.</p>
   <p><a class="button" href="{{ subscribe_url }}" rel="noopener">Assinar a newsletter</a></p>
+  {% if subscribe_url.startswith("mailto:") %}<p class="hero-note">O botão abre um e-mail pronto para o UFABC Science: é só enviar. Para cancelar, use o link no rodapé de qualquer edição.</p>{% endif %}
 </section>
 {% endif %}
 

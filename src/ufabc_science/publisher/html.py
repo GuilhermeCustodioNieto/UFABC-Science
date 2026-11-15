@@ -196,7 +196,12 @@ class SiteWriter:
     ) -> None:
         self.output_dir = output_dir
         self.ai_notice = AI_NOTICE if ai_notice else None
-        self.subscribe_url = safe_url(subscribe_url)
+        # Inscrição por link http(s) ou por e-mail (mailto:) para o endereço do projeto.
+        self.subscribe_url = (
+            subscribe_url
+            if subscribe_url and (safe_url(subscribe_url) or subscribe_url.startswith("mailto:"))
+            else None
+        )
         self.env = _environment()
         self.written: list[str] = []
 

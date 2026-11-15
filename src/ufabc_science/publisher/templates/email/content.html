@@ -1,5 +1,4 @@
-{# Corpo do e-mail: usado sozinho no Kit (o template do Kit adiciona descadastro e endereço)
-   e dentro de newsletter.html na pré-visualização. #}
+{# Corpo do e-mail, incluído em newsletter.html. #}
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;margin:0 auto;background:#ffffff;border-radius:10px;font-family:Georgia,'Times New Roman',serif;color:#1c2329;">
 
         <tr><td style="padding:28px 32px 8px 32px;border-bottom:3px solid #0f5c6b;">
@@ -48,7 +47,7 @@
         <tr><td style="padding:24px 32px 28px 32px;font-family:Arial,Helvetica,sans-serif;font-size:12px;line-height:1.6;color:#5a6670;">
           {% if ai_notice %}<p style="margin:0 0 10px 0;background:#fbf1df;border-radius:6px;padding:10px 12px;color:#1c2329;">{{ ai_notice }}</p>{% endif %}
           <p style="margin:0 0 10px 0;">{{ disclaimer }} Nenhum conteúdo constitui aconselhamento médico ou clínico.</p>
-          {% if test %}<p style="margin:0;">Envio de teste: este e-mail foi enviado apenas aos assinantes marcados para teste.</p>{% else %}<p style="margin:0;">Você recebe este e-mail porque assinou a newsletter do UFABC Science. O link para cancelar a inscrição está logo abaixo.</p>{% endif %}
+          {% if test %}<p style="margin:0;">Envio de teste: este e-mail não foi enviado aos assinantes.</p>{% else %}<p style="margin:0;">Você recebe este e-mail porque assinou a newsletter do UFABC Science.{% if unsubscribe_url %} <a href="{{ unsubscribe_url }}" style="color:#5a6670;">Cancelar inscrição</a> (basta enviar o e-mail que abrir).{% endif %}</p>{% endif %}
         </td></tr>
 
       </table>

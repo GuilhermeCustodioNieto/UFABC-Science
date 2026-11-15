@@ -98,7 +98,8 @@ def test_weekly_newsletter_runs_after_deploy_and_only_for_new_editions() -> None
     ):
         assert condition in job["if"]
     assert job["permissions"] == {"contents": "write"}
-    assert job["env"]["KIT_API_KEY"] == "${{ secrets.KIT_API_KEY }}"
+    assert job["env"]["SMTP_PASSWORD"] == "${{ secrets.SMTP_PASSWORD }}"
+    assert job["env"]["NEWSLETTER_RECIPIENTS"] == "${{ secrets.NEWSLETTER_RECIPIENTS }}"
     commands = [step.get("run", "").strip() for step in job["steps"]]
     assert "python -m ufabc_science newsletter send --skip-if-unconfigured" in commands
     assert any("data_branch.sh commit" in c for c in commands)  # registra o envio único
@@ -113,8 +114,9 @@ def test_manual_newsletter_test_mode_and_confirmed_full_send() -> None:
     assert inputs["mode"]["default"] == "teste"
     assert inputs["mode"]["options"] == ["teste", "assinantes"]
     job = workflow["jobs"]["send"]
-    assert job["env"]["KIT_API_KEY"] == "${{ secrets.KIT_API_KEY }}"
-    assert job["env"]["KIT_TEST_TAG_ID"] == "${{ vars.KIT_TEST_TAG_ID }}"
+    # Senha e endereços só por secrets: nunca em entradas do workflow nem em logs públicos.
+    for key in ("SMTP_PASSWORD", "NEWSLETTER_RECIPIENTS", "NEWSLETTER_TEST_EMAIL"):
+        assert job["env"][key] == f"${{{{ secrets.{key} }}}}"
     script = next(s["run"] for s in job["steps"] if s.get("name") == "Enviar")
     assert "newsletter send --test" in script
     assert 'expected="ENVIAR edicao-' in script

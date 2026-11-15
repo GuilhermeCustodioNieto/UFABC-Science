@@ -41,7 +41,6 @@ from ufabc_science.infrastructure.database import (
     init_database,
     session_scope,
 )
-from ufabc_science.newsletter.mailer import NewsletterError
 from ufabc_science.pipeline.lock import ConcurrentRunError
 
 logger = logging.getLogger("ufabc_science.cli")
@@ -630,12 +629,7 @@ def _cmd_edition_publish(args: argparse.Namespace, settings: Settings) -> int:
             )
             print(f"Edição {edition.edition_number} PUBLICADA em {edition.published_at}.")
         with factory() as session:
-            result = build_site(
-                session,
-                settings.output_dir,
-                timezone_name=settings.timezone,
-                subscribe_url=settings.subscribe_link,
-            )
+            result = build_site(session, settings.output_dir, timezone_name=settings.timezone)
         print(f"Site gerado em {result.output_dir.as_posix()} ({len(result.pages)} páginas).")
     finally:
         engine.dispose()
@@ -694,12 +688,7 @@ def _cmd_site_build(args: argparse.Namespace, settings: Settings) -> int:
                 )
                 if not check.valid:
                     raise PublicationBlockedError("Edição publicada inconsistente.", check.errors)
-            result = build_site(
-                session,
-                settings.output_dir,
-                timezone_name=settings.timezone,
-                subscribe_url=settings.subscribe_link,
-            )
+            result = build_site(session, settings.output_dir, timezone_name=settings.timezone)
     finally:
         engine.dispose()
     print(
@@ -746,59 +735,6 @@ def _cmd_autopublish(args: argparse.Namespace, settings: Settings) -> int:
     if output_path:
         with open(output_path, "a", encoding="utf-8") as handle:
             handle.write(f"published={'true' if report.published else 'false'}\n")
-    return EXIT_OK
-
-
-def _cmd_newsletter_preview(args: argparse.Namespace, settings: Settings) -> int:
-    from ufabc_science.editorial.edition import get_edition
-    from ufabc_science.newsletter.service import latest_published, render_newsletter
-
-    engine, factory = open_database(settings)
-    try:
-        with factory() as session:
-            edition = (
-                get_edition(session, args.edition)
-                if args.edition is not None
-                else latest_published(session)
-            )
-            email = render_newsletter(
-                session,
-                edition,
-                site_url=settings.site_url or "https://exemplo.invalid/",
-                timezone_name=settings.timezone,
-            )
-    finally:
-        engine.dispose()
-    target = settings.preview_dir / "newsletter" / f"{email.slug}.html"
-    target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(email.html, encoding="utf-8", newline="\n")
-    print(f"Assunto: {email.subject}")
-    print(f"Pré-visualização do e-mail: {target.as_posix()} (nada foi enviado)")
-    if not settings.site_url:
-        logger.warning("SITE_URL não definido: os links do e-mail usam um endereço fictício.")
-    return EXIT_OK
-
-
-def _cmd_newsletter_send(args: argparse.Namespace, settings: Settings) -> int:
-    import os
-
-    from ufabc_science.newsletter.service import send_newsletter
-
-    if args.skip_if_unconfigured and not settings.smtp_password:
-        print("Newsletter não configurada (SMTP_PASSWORD ausente): nenhum e-mail enviado.")
-        return EXIT_OK
-    engine, factory = open_database(settings)
-    try:
-        with factory() as session:
-            result = send_newsletter(session, settings, edition_number=args.edition, test=args.test)
-    finally:
-        engine.dispose()
-    line = f"Newsletter da edição {result.edition_number:03d}: {result.message}."
-    print(line)
-    summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
-    if summary_path:
-        with open(summary_path, "a", encoding="utf-8") as handle:
-            handle.write(f"## Newsletter\n\n- {line}\n")
     return EXIT_OK
 
 
@@ -1033,25 +969,6 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--date", type=_date, help="Data de referência AAAA-MM-DD (padrão: hoje).")
     p.set_defaults(handler=_cmd_autopublish)
 
-    p = sub.add_parser("newsletter", help="Newsletter por e-mail (SMTP do projeto).")
-    nl = p.add_subparsers(dest="newsletter_command", metavar="AÇÃO", required=True)
-    n = nl.add_parser("preview", help="Gera o HTML do e-mail localmente (não envia).")
-    n.add_argument("--edition", type=int, help="Padrão: a edição publicada mais recente.")
-    n.set_defaults(handler=_cmd_newsletter_preview)
-    n = nl.add_parser("send", help="Envia a edição aos assinantes (uma vez) ou um teste.")
-    n.add_argument("--edition", type=int, help="Padrão: a edição publicada mais recente.")
-    n.add_argument(
-        "--test",
-        action="store_true",
-        help="Envia só para NEWSLETTER_TEST_EMAIL (padrão: o remetente).",
-    )
-    n.add_argument(
-        "--skip-if-unconfigured",
-        action="store_true",
-        help="Termina sem erro se SMTP_PASSWORD não estiver definida.",
-    )
-    n.set_defaults(handler=_cmd_newsletter_send)
-
     p = sub.add_parser("runs", help="Lista execuções do pipeline.")
     p.add_argument("--limit", type=int, default=10)
     p.set_defaults(handler=_cmd_runs)
@@ -1087,7 +1004,7 @@ def run_cli(argv: Sequence[str] | None = None) -> int:
         for error in exc.errors:
             logger.error("  - %s", error)
         return EXIT_ERROR
-    except (CLIError, EditorialError, NewsletterError) as exc:
+    except (CLIError, EditorialError) as exc:
         logger.error("%s", exc)
         return EXIT_ERROR
     except SQLAlchemyError as exc:

@@ -107,7 +107,6 @@ python -m ufabc_science edition publish --edition 1 --by "Seu nome" --confirm
 | `site build [--require-edition N] [--strict]` | Site público em `dist/` só com edições publicadas. |
 | `run [--days] [--sources] [--max-articles] [--limit] [--steps all\|process\|collect,enrich,...]` | Pipeline completo ou parcial; **nunca aprova nem publica**. |
 | `autopublish [--max-articles N] [--date AAAA-MM-DD]` | Exige `AUTO_PUBLISH=true`: aprova só rascunhos de IA real `PASSED` sem avisos, monta e publica a edição da semana. |
-| `newsletter preview [--edition N]` · `newsletter send [--edition N] [--test] [--skip-if-unconfigured]` | E-mail da edição pelo Gmail do projeto (SMTP), aos assinantes uma única vez ou como teste. Ver [`docs/NEWSLETTER.md`](docs/NEWSLETTER.md). |
 | `runs [--limit 10]` | Histórico de execuções. |
 
 Códigos de saída: `0` sucesso · `1` erro ou validação reprovada · `2` uso/configuração
@@ -145,10 +144,6 @@ em todas as checagens automáticas (`PASSED`, sem avisos), monta a edição, pub
 deploy no Pages. O site avisa que os resumos não tiveram revisão humana. Rascunhos com
 `WARNING`/`FAILED` ficam pendentes. Para voltar ao fluxo com revisão humana, defina a variável
 `AUTO_PUBLISH=false`. Detalhes em [`docs/AUTOMATION_GUIDE.md`](docs/AUTOMATION_GUIDE.md).
-
-Com a senha de app do Gmail do projeto configurada, a edição também é enviada por e-mail aos
-assinantes toda segunda, sem nenhum serviço de newsletter, e o site ganha um botão "Assinar":
-veja [`docs/NEWSLETTER.md`](docs/NEWSLETTER.md).
 
 ## Limitações conhecidas
 

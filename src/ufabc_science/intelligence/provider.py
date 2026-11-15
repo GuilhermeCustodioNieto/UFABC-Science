@@ -218,7 +218,13 @@ class OpenAICompatibleProvider(AIProvider):
                         payload = response.json()
                         content = payload["choices"][0]["message"]["content"]
                     except (ValueError, KeyError, IndexError, TypeError) as exc:
-                        raise AIProviderError(f"Formato de resposta inesperado: {exc}") from exc
+                        # O corpo da resposta não contém a chave; ajuda a diagnosticar.
+                        kind = response.headers.get("content-type", "?")
+                        snippet = " ".join(response.text[:200].split()) or "(vazio)"
+                        raise AIProviderError(
+                            f"Formato de resposta inesperado: {exc} "
+                            f"[HTTP {response.status_code}, {kind}: {snippet}]"
+                        ) from exc
                     return AIResponse(
                         data=self._parse_content(content or ""),
                         provider=self.name,

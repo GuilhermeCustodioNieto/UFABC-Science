@@ -139,7 +139,7 @@ transporte HTTP simulado: não acessam a internet nem exigem chaves.
 ## Publicação automática
 
 No GitHub Actions, a rotina semanal publica sozinha (`AUTO_PUBLISH=true` por padrão): gera os
-rascunhos com o GitHub Models (gratuito, via `GITHUB_TOKEN`), aprova **apenas** os que passam
+rascunhos com o Google Gemini (cota gratuita, chave no secret `AI_API_KEY`), aprova **apenas** os que passam
 em todas as checagens automáticas (`PASSED`, sem avisos), monta a edição, publica e faz o
 deploy no Pages. O site avisa que os resumos não tiveram revisão humana. Rascunhos com
 `WARNING`/`FAILED` ficam pendentes. Para voltar ao fluxo com revisão humana, defina a variável

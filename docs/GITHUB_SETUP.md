@@ -31,11 +31,12 @@
 | `ENABLED_SOURCES` | `openalex,pubmed,arxiv,crossref` | Não |
 | `AUTO_PUBLISH` | `true` ou `false` | Não (padrão `true`: publica sozinho, sem revisão humana) |
 | `AI_PROVIDER` | `openai_compatible` ou `mock` | Não (padrão `openai_compatible`) |
-| `AI_MODEL` | nome do modelo | Não (padrão `openai/gpt-4.1-mini`) |
-| `AI_BASE_URL` | URL da API compatível | Não (padrão GitHub Models) |
+| `AI_MODEL` | nome do modelo | Não (padrão `gemini-3.8-flash`) |
+| `AI_BASE_URL` | URL da API compatível | Não (padrão Google Gemini) |
+| `AI_MAX_TOKENS` | `8000` | Não |
 
-Sem nenhuma variável de IA, o workflow usa o **GitHub Models** com o `GITHUB_TOKEN`
-automático (gratuito, sem chave). Não crie `AI_PROVIDER=mock` se quiser publicação automática:
+Sem nenhuma variável de IA, o workflow usa o **Google Gemini** (cota gratuita) com a chave do
+secret `AI_API_KEY`. Não crie `AI_PROVIDER=mock` se quiser publicação automática:
 rascunhos do mock nunca são aprovados.
 
 *Secrets* (sensíveis):
@@ -44,9 +45,9 @@ rascunhos do mock nunca são aprovados.
 |---|---|
 | `OPENALEX_API_KEY` | Orçamento próprio no OpenAlex (gratuito). Recomendado. |
 | `NCBI_API_KEY` | Limite maior no PubMed (gratuito). Opcional. |
-| `AI_API_KEY` | Chave de outro provedor de IA. Opcional: sem ela, usa o `GITHUB_TOKEN` (GitHub Models). |
+| `AI_API_KEY` | **Obrigatório para publicar.** Chave do Google Gemini (Google AI Studio → *Get API key*) ou do provedor configurado em `AI_BASE_URL`. |
 
-Use o `GITHUB_TOKEN` automático; não crie tokens pessoais. Um provedor de IA local (Ollama)
+Para o GitHub, use o `GITHUB_TOKEN` automático; não crie tokens pessoais. Um provedor de IA local (Ollama)
 não é acessível pelo runner do GitHub.
 
 ## 4. Branch de dados

@@ -124,11 +124,10 @@ O site exibe em todas as páginas um aviso de que os resumos foram escritos por 
 humana, sempre que houver alguma edição publicada automaticamente. O deploy só acontece se os
 dados foram gravados com sucesso na branch `data`.
 
-**IA padrão: GitHub Models** (`AI_BASE_URL=https://models.github.ai/inference`,
-`AI_MODEL=openai/gpt-4.1-mini`), autenticado pelo `GITHUB_TOKEN` do próprio workflow
-(permissão `models: read`): sem conta, chave ou custo, com limites diários de requisições que
-o GitHub pode alterar. Para usar outro provedor, defina as variáveis `AI_*` e o secret
-`AI_API_KEY`.
+**IA padrão: Google Gemini** (`AI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai`,
+`AI_MODEL=gemini-3.8-flash`), na cota gratuita, com a chave do Google AI Studio no secret
+`AI_API_KEY`. Os limites de requisições podem mudar. Para usar outro provedor ou modelo, defina
+as variáveis `AI_*`. (O GitHub Models, padrão anterior, foi desativado em 30/07/2026.)
 
 ## Fluxo com revisão humana (`AUTO_PUBLISH=false`)
 

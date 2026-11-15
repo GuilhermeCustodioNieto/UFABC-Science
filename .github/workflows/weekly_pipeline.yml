@@ -2,7 +2,7 @@
 # Publicação automática: só rascunhos de IA real com verificação PASSED e sem avisos são
 # aprovados (editorial/autopublish.py); o site avisa que não houve revisão humana.
 # Para voltar ao fluxo com revisão humana, defina a variável AUTO_PUBLISH = false.
-# IA padrão: GitHub Models (gratuito, autenticado pelo GITHUB_TOKEN; permissão models: read).
+# IA padrão: Google Gemini (API compatível com OpenAI, cota gratuita), chave no secret AI_API_KEY.
 # Agendamento: segundas-feiras às 11:00 UTC = 08:00 em America/Sao_Paulo (UTC-3).
 # O Brasil não adota horário de verão desde 2019; se voltar a adotar, a execução
 # ocorrerá às 09:00 locais nesse período (ver docs/AUTOMATION_GUIDE.md).
@@ -41,11 +41,10 @@ on:
           - classify,score
           - process
 
-# Escrita é necessária apenas para atualizar a branch de dados ("data"); models: read
-# permite usar o GitHub Models com o GITHUB_TOKEN. Pages só no job "deploy".
+# Escrita é necessária apenas para atualizar a branch de dados ("data"). Pages só no job
+# "deploy".
 permissions:
   contents: write
-  models: read
 
 concurrency:
   group: ufabc-science-data
@@ -66,9 +65,11 @@ jobs:
       CONTACT_EMAIL: ${{ vars.CONTACT_EMAIL }}
       ENABLED_SOURCES: ${{ vars.ENABLED_SOURCES || 'openalex,pubmed,arxiv,crossref' }}
       AI_PROVIDER: ${{ vars.AI_PROVIDER || 'openai_compatible' }}
-      AI_MODEL: ${{ vars.AI_MODEL || 'openai/gpt-4.1-mini' }}
-      AI_BASE_URL: ${{ vars.AI_BASE_URL || 'https://models.github.ai/inference' }}
-      AI_API_KEY: ${{ secrets.AI_API_KEY || github.token }}
+      AI_MODEL: ${{ vars.AI_MODEL || 'gemini-3.8-flash' }}
+      AI_BASE_URL: ${{ vars.AI_BASE_URL || 'https://generativelanguage.googleapis.com/v1beta/openai' }}
+      AI_API_KEY: ${{ secrets.AI_API_KEY }}
+      # Modelos do Gemini que "pensam" gastam tokens de saída com o raciocínio.
+      AI_MAX_TOKENS: ${{ vars.AI_MAX_TOKENS || '8000' }}
       AUTO_PUBLISH: ${{ vars.AUTO_PUBLISH || 'true' }}
       OUTPUT_DIR: dist
       OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}

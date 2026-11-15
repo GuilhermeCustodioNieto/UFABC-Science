@@ -48,7 +48,7 @@ def test_weekly_pipeline_schedule_and_manual_parameters() -> None:
     assert triggers["schedule"] == [{"cron": "0 11 * * 1"}]  # segunda, 08:00 em São Paulo
     inputs = triggers["workflow_dispatch"]["inputs"]
     assert {"days", "sources", "max_articles", "generation_limit", "steps"} <= set(inputs)
-    assert workflow["permissions"] == {"contents": "write", "models": "read"}
+    assert workflow["permissions"] == {"contents": "write"}
     assert workflow["concurrency"]["cancel-in-progress"] is False
 
 
@@ -57,7 +57,7 @@ def test_weekly_pipeline_publishes_only_through_autopublish() -> None:
     workflow = load("weekly_pipeline.yml")
     pipeline = workflow["jobs"]["pipeline"]
     assert "pages" not in str(workflow["permissions"])
-    assert "permissions" not in pipeline  # herda contents: write + models: read, sem Pages
+    assert "permissions" not in pipeline  # herda contents: write, sem Pages
     # Nenhuma aprovação ou publicação manual embutida: só o comando com critérios próprios.
     for forbidden in ("edition publish", "status: approved", "--confirm"):
         assert forbidden not in text
@@ -91,9 +91,12 @@ def test_weekly_pipeline_uses_secrets_only_through_env() -> None:
     env = workflow["jobs"]["pipeline"]["env"]
     for key in ("OPENALEX_API_KEY", "NCBI_API_KEY"):
         assert env[key] == f"${{{{ secrets.{key} }}}}"
-    # Sem secret próprio, usa o GITHUB_TOKEN (GitHub Models, gratuito).
-    assert env["AI_API_KEY"] == "${{ secrets.AI_API_KEY || github.token }}"
-    assert env["AI_BASE_URL"] == "${{ vars.AI_BASE_URL || 'https://models.github.ai/inference' }}"
+    # IA padrão: Google Gemini (o GitHub Models foi desativado em 30/07/2026).
+    assert env["AI_API_KEY"] == "${{ secrets.AI_API_KEY }}"
+    assert (
+        env["AI_BASE_URL"]
+        == "${{ vars.AI_BASE_URL || 'https://generativelanguage.googleapis.com/v1beta/openai' }}"
+    )
     text = (WORKFLOWS / "weekly_pipeline.yml").read_text(encoding="utf-8")
     assert "echo $AI_API_KEY" not in text
     assert all("secrets." not in str(step) for step in all_steps(workflow))

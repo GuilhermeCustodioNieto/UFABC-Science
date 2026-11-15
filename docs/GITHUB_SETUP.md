@@ -31,7 +31,7 @@
 | `ENABLED_SOURCES` | `openalex,pubmed,arxiv,crossref` | Não |
 | `AUTO_PUBLISH` | `true` ou `false` | Não (padrão `true`: publica sozinho, sem revisão humana) |
 | `AI_PROVIDER` | `openai_compatible` ou `mock` | Não (padrão `openai_compatible`) |
-| `AI_MODEL` | nome do modelo | Não (padrão `gemini-3.8-flash`) |
+| `AI_MODEL` | nome do modelo | Não (padrão `gemini-3.6-flash`) |
 | `AI_BASE_URL` | URL da API compatível | Não (padrão Google Gemini) |
 | `AI_MAX_TOKENS` | `8000` | Não |
 | `AI_TIMEOUT` | `240` (segundos por requisição) | Não |

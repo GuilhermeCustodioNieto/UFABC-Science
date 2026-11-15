@@ -125,7 +125,7 @@ humana, sempre que houver alguma edição publicada automaticamente. O deploy s�
 dados foram gravados com sucesso na branch `data`.
 
 **IA padrão: Google Gemini** (`AI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai`,
-`AI_MODEL=gemini-3.8-flash`), na cota gratuita, com a chave do Google AI Studio no secret
+`AI_MODEL=gemini-3.6-flash`), na cota gratuita, com a chave do Google AI Studio no secret
 `AI_API_KEY`. Os limites de requisições podem mudar. Para usar outro provedor ou modelo, defina
 as variáveis `AI_*`. (O GitHub Models, padrão anterior, foi desativado em 30/07/2026.)
 

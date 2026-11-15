@@ -65,7 +65,7 @@ jobs:
       CONTACT_EMAIL: ${{ vars.CONTACT_EMAIL }}
       ENABLED_SOURCES: ${{ vars.ENABLED_SOURCES || 'openalex,pubmed,arxiv,crossref' }}
       AI_PROVIDER: ${{ vars.AI_PROVIDER || 'openai_compatible' }}
-      AI_MODEL: ${{ vars.AI_MODEL || 'gemini-3.8-flash' }}
+      AI_MODEL: ${{ vars.AI_MODEL || 'gemini-3.6-flash' }}
       AI_BASE_URL: ${{ vars.AI_BASE_URL || 'https://generativelanguage.googleapis.com/v1beta/openai' }}
       AI_API_KEY: ${{ secrets.AI_API_KEY }}
       # Modelos do Gemini que "pensam" gastam tokens de saída com o raciocínio.

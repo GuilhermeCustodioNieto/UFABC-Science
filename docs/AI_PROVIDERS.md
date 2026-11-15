@@ -45,7 +45,7 @@ AI_MAX_TOKENS=2000
 | Opção | Custo | Observações |
 |---|---|---|
 | **Ollama** ou **LM Studio** (local) | R$ 0 em serviços; usa CPU/GPU da sua máquina | Servidor OpenAI-compatível local (`http://localhost:11434/v1` no Ollama, `http://localhost:1234/v1` no LM Studio). Não funciona no GitHub Actions (o runner não acessa sua máquina). Qualidade depende do modelo baixado. **Medido neste projeto** (`qwen2.5:7b`, notebook do desenvolvedor): ~4 min por rascunho; abstracts longos podem exceder 300 s (use `AI_TIMEOUT=300` ou mais). Um lote de 10 leva ~40 min: gere com `--limit` pequeno ou deixe rodando. |
-| **Google Gemini** (padrão do workflow) | R$ 0 na cota gratuita; limites de requisições por minuto/dia definidos pelo Google e sujeitos a mudança | `AI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai`, `AI_MODEL=gemini-3.8-flash`, `AI_MAX_TOKENS=8000` (o raciocínio do modelo consome tokens de saída). Chave criada no Google AI Studio, no secret `AI_API_KEY`. Na cota gratuita o Google pode usar os prompts para melhorar seus produtos; eles contêm apenas metadados públicos dos artigos. |
+| **Google Gemini** (padrão do workflow) | R$ 0 na cota gratuita; limites de requisições por minuto/dia definidos pelo Google e sujeitos a mudança | `AI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai`, `AI_MODEL=gemini-3.6-flash`, `AI_MAX_TOKENS=8000` (o raciocínio do modelo consome tokens de saída). Chave criada no Google AI Studio, no secret `AI_API_KEY`. Na cota gratuita o Google pode usar os prompts para melhorar seus produtos; eles contêm apenas metadados públicos dos artigos. |
 | ~~GitHub Models~~ | — | **Desativado pelo GitHub em 30/07/2026**: o endpoint `models.github.ai` responde só `OK`, sem gerar texto. |
 | Serviço hospedado com API OpenAI-compatível | Varia | Muitos oferecem cotas gratuitas temporárias ou com limites de requisições/tokens que **mudam sem aviso**. Antes de configurar, registre aqui: provedor, modelo, limites, preço por token, política de uso de dados enviados e data da consulta. |
 
@@ -57,7 +57,7 @@ local ou *secrets* do GitHub).
 
 | Data | Provedor/modelo | Limites | Custo | Uso de dados | Decisão |
 |---|---|---|---|---|---|
-| 2026-11-15 | Google Gemini / `gemini-3.8-flash` | Cota gratuita (limites no AI Studio) | R$ 0 | Prompts só com metadados públicos | Adotado como padrão após o fim do GitHub Models |
+| 2026-11-15 | Google Gemini / `gemini-3.6-flash` | Cota gratuita (limites no AI Studio) | R$ 0 | Prompts só com metadados públicos | Adotado como padrão após o fim do GitHub Models |
 
 ## Como os prompts protegem a geração
 

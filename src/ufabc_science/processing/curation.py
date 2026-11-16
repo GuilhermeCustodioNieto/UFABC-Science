@@ -82,6 +82,8 @@ DECISION_LABELS = {
     REJECT: "rejeitar",
 }
 PRIORITY_SCORE, PUBLISH_SCORE, CONSIDER_SCORE = 85.0, 75.0, 65.0
+# Áreas sem editoria própria (Outras Ciências) só entram com descoberta excepcional.
+EXCEPTIONAL_SCORE = 80.0
 
 # Mesma lista de ``RejectionFlag`` (intelligence/schemas.py), com a explicação ao leitor.
 REJECTION_REASONS = {
@@ -511,10 +513,10 @@ def decide(score: float, flags: list[str], categories: list[str]) -> tuple[str, 
         reasons += [f"Rejeitado: {REJECTION_REASONS.get(f, f)}." for f in dict.fromkeys(flags)]
         return REJECT, reasons
     only_other = bool(categories) and set(categories) <= {EXCEPTIONAL_ONLY_CATEGORY}
-    if only_other and score < PRIORITY_SCORE:
+    if only_other and score < EXCEPTIONAL_SCORE:
         reasons.append(
             f"Rejeitado: área sem editoria própria só entra com descoberta excepcional "
-            f"(nota {score:.0f} < {PRIORITY_SCORE:.0f})."
+            f"(nota {score:.0f} < {EXCEPTIONAL_SCORE:.0f})."
         )
         return REJECT, reasons
     if score >= PRIORITY_SCORE:
@@ -917,6 +919,8 @@ class CurationSummary:
     decisions: dict[str, int] = field(default_factory=dict)
     errors: list[str] = field(default_factory=list)
     explanations: dict[int, str] = field(default_factory=dict)
+    triaged: int = 0
+    triage_calls: int = 0
 
     def count(self, decision: str) -> None:
         self.decisions[decision] = self.decisions.get(decision, 0) + 1
@@ -951,6 +955,71 @@ def shortlist_for_ai(
     return [article for _, _, article in candidates[:limit]]
 
 
+TRIAGE_BATCH = 25
+_TRIAGE_ABSTRACT_CHARS = 400
+
+
+@dataclass
+class TriageResult:
+    ranked: list[Article]
+    scores: dict[int, tuple[int, str]] = field(default_factory=dict)
+    errors: list[str] = field(default_factory=list)
+    calls: int = 0
+
+
+def triage_candidates(
+    provider: AIProvider, articles: list[Article], *, keep: int, batch_size: int = TRIAGE_BATCH
+) -> TriageResult:
+    """Triagem barata por IA: lê título e início do abstract em lotes e ordena pelo
+    potencial de curiosidade, para que a curadoria completa (cara) veja os candidatos mais
+    promissores e não só os favoritos do pré-filtro heurístico.
+
+    Lote com falha não perde artigos: eles entram depois dos avaliados, na ordem original.
+    """
+    from ufabc_science.intelligence.prompts import TRIAGE_PROMPT, untrusted_block
+    from ufabc_science.intelligence.schemas import AITriageOutput
+
+    result = TriageResult(ranked=[])
+    by_id = {article.id: article for article in articles}
+    unscored: list[Article] = []
+    for start in range(0, len(articles), batch_size):
+        batch = articles[start : start + batch_size]
+        payload = {
+            "pesquisas": [
+                {
+                    "id": article.id,
+                    "titulo": article.title,
+                    "inicio_do_abstract": (article.abstract or "")[:_TRIAGE_ABSTRACT_CHARS],
+                    "periodico": article.journal or article.publisher,
+                }
+                for article in batch
+            ]
+        }
+        prompt = TRIAGE_PROMPT.render(dados=untrusted_block(payload))
+        result.calls += 1
+        try:
+            response = provider.generate_structured(
+                prompt, AITriageOutput.model_json_schema(), system=TRIAGE_PROMPT.system
+            )
+            output = AITriageOutput.model_validate(response.data)
+        except (AIError, ValidationError) as exc:
+            result.errors.append(f"triagem do lote {start // batch_size + 1}: {exc}")
+            logger.error("Triagem do lote %d falhou: %s", start // batch_size + 1, exc)
+            unscored += batch
+            continue
+        seen = set()
+        for item in output.items:
+            if item.id in by_id and item.id not in seen and any(a.id == item.id for a in batch):
+                result.scores[item.id] = (item.curiosity, item.reason)
+                seen.add(item.id)
+        unscored += [article for article in batch if article.id not in seen]
+    scored = sorted(
+        (by_id[i] for i in result.scores), key=lambda a: result.scores[a.id][0], reverse=True
+    )
+    result.ranked = (scored + unscored)[:keep]
+    return result
+
+
 def curate_articles(
     session: Session,
     provider: AIProvider,
@@ -960,8 +1029,14 @@ def curate_articles(
     min_abstract_words: int = 40,
     article_ids: list[int] | None = None,
     today: date | None = None,
+    triage_pool: int = 0,
 ) -> CurationSummary:
-    """Curadoria por IA da lista curta. Cada avaliação é um novo registro (histórico)."""
+    """Curadoria por IA da lista curta. Cada avaliação é um novo registro (histórico).
+
+    Com ``triage_pool`` maior que ``limit``, os ``triage_pool`` melhores do pré-filtro
+    passam antes pela triagem em lote (``triage_candidates``) e só os ``limit`` mais
+    promissores recebem a curadoria completa.
+    """
     summary = CurationSummary()
     today = today or datetime.now(timezone.utc).date()
     allowed = {
@@ -971,7 +1046,19 @@ def curate_articles(
     if article_ids:
         articles = list(session.scalars(select(Article).where(Article.id.in_(article_ids))))
     else:
-        articles = shortlist_for_ai(session, limit=limit, max_age_days=max_age_days, today=today)
+        pool = max(limit, triage_pool)
+        articles = shortlist_for_ai(session, limit=pool, max_age_days=max_age_days, today=today)
+        if len(articles) > limit:
+            triage = triage_candidates(provider, articles, keep=limit)
+            summary.triaged = len(articles)
+            summary.triage_calls = triage.calls
+            summary.errors += triage.errors
+            triage_notes = triage.scores
+            articles = triage.ranked
+        else:
+            triage_notes = {}
+    if article_ids:
+        triage_notes = {}
     for article in articles:
         heuristic = heuristic_curation(article, today=today, min_abstract_words=min_abstract_words)
         try:
@@ -980,6 +1067,9 @@ def curate_articles(
             summary.errors.append(f"artigo {article.id}: {exc}")
             logger.error("Curadoria do artigo %s falhou: %s", article.id, exc)
             continue
+        if article.id in triage_notes:
+            score, reason = triage_notes[article.id]
+            assessment.reasons.append(f"Triagem: curiosidade {score} ({reason}).")
         session.add(assessment.to_record(article))
         if assessment.decision != REJECT:
             apply_categories(session, article, assessment)

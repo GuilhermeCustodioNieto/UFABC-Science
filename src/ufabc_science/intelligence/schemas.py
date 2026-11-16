@@ -178,6 +178,20 @@ class AICurationOutput(BaseModel):
     decision_justification: str = Field(min_length=10, max_length=1200)
 
 
+class AITriageItem(BaseModel):
+    id: int
+    curiosity: int = Field(ge=0, le=100)
+    reason: str = Field(default="", max_length=300)
+
+
+class AITriageOutput(BaseModel):
+    """Triagem em lote: potencial de curiosidade de cada pesquisa da lista."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    items: list[AITriageItem] = Field(default_factory=list, max_length=60)
+
+
 # --- Revisão editorial da matéria -----------------------------------------------------------
 
 REVIEW_CRITERIA = (

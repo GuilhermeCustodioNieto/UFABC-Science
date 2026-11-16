@@ -34,6 +34,7 @@ from ufabc_science.processing.curation import (
     explain_record,
     heuristic_curation,
     is_ai_assessment,
+    triage_candidates,
 )
 from ufabc_science.processing.relevance import score_articles
 
@@ -472,3 +473,94 @@ def test_editoria_dominance_is_limited_without_forcing_quotas(seeded_session: Se
     assert max(sections.count(s) for s in set(sections)) <= 2
     assert "astronomia-e-universo" in sections
     assert all((c.score or 0) >= CONSIDER_SCORE for c in selection.selected)
+
+
+def test_other_sciences_threshold_is_80() -> None:
+    """Pesquisa forte de área sem editoria própria (ex.: ATP e envelhecimento celular)."""
+    article = scenario_article("ia_extraordinaria")
+    assessment = heuristic_curation(article, today=TODAY, categories=["outras-ciencias"])
+    assessment.scores = dict.fromkeys(assessment.scores, 79)
+    assert assessment.finalize().decision == REJECT
+    assessment.scores = dict.fromkeys(assessment.scores, 83)
+    assert assessment.finalize().decision == "publish"
+
+
+# --- Triagem em lote -----------------------------------------------------------------------
+
+
+class TriageProvider(AIProvider):
+    name = "fake_llm"
+    model = "fake"
+
+    def __init__(self, scores: dict[str, int], fail_batches: set[int] | None = None) -> None:
+        self.scores = scores  # título -> nota
+        self.fail_batches = fail_batches or set()
+        self.calls = 0
+
+    def generate_structured(self, prompt, response_schema, *, system=None) -> AIResponse:
+        from ufabc_science.intelligence.exceptions import AIProviderError
+        from ufabc_science.intelligence.provider import extract_payload
+
+        self.calls += 1
+        if response_schema["title"] == "AICurationOutput":
+            return AIResponse(curation_response(), self.name, self.model, {})
+        assert response_schema["title"] == "AITriageOutput"
+        if self.calls in self.fail_batches:
+            raise AIProviderError("HTTP 429")
+        items = [
+            {"id": p["id"], "curiosity": self.scores.get(p["titulo"], 10), "reason": "r"}
+            for p in extract_payload(prompt)["pesquisas"]
+        ]
+        items.append({"id": 99999, "curiosity": 100, "reason": "id inventado"})
+        return AIResponse({"items": items}, self.name, self.model, {})
+
+
+def test_triage_promotes_curious_titles_over_heuristic_order(seeded_session: Session) -> None:
+    session = seeded_session
+    dull = [
+        persist(
+            session,
+            scenario_article(
+                "complexo_sem_curiosidade",
+                title=f"Mesh refinement benchmark number {i}",
+                doi=f"10.5555/dull-{i}",
+            ),
+        )
+        for i in range(30)
+    ]
+    gem = persist(session, scenario_article("astronomia_surpreendente"))
+    provider = TriageProvider({gem.title: 95})
+
+    result = triage_candidates(provider, [*dull, gem], keep=3, batch_size=25)
+
+    assert provider.calls == 2  # 31 candidatos em lotes de 25
+    assert result.ranked[0] is gem
+    assert 99999 not in result.scores  # id inventado pela IA é ignorado
+    assert len(result.ranked) == 3
+
+
+def test_failed_triage_batch_keeps_candidates(seeded_session: Session) -> None:
+    session = seeded_session
+    articles = [
+        persist(session, scenario_article(name, doi=f"10.5555/t-{name}")) for name in SCENARIOS
+    ]
+    result = triage_candidates(
+        TriageProvider({}, fail_batches={1}), articles, keep=20, batch_size=4
+    )
+    assert len(result.ranked) == len(articles)
+    assert result.errors and "429" in result.errors[0]
+
+
+def test_curation_uses_triage_when_pool_is_larger(seeded_session: Session) -> None:
+    session = seeded_session
+    for name in SCENARIOS:
+        persist(session, scenario_article(name))
+    score_articles(session, today=TODAY)
+    gem_title = SCENARIOS["economia_relevante"]["title"]
+    provider = TriageProvider({gem_title: 99})
+    summary = curate_articles(session, provider, limit=1, triage_pool=8, today=TODAY)
+    assert summary.triaged >= 2 and summary.triage_calls == 1
+    assert summary.assessed == 1
+    (article_id,) = summary.explanations
+    assert session.get(Article, article_id).title == gem_title
+    assert "Triagem: curiosidade 99" in summary.explanations[article_id]

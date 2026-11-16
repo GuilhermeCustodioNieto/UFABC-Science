@@ -66,6 +66,8 @@ class Settings(BaseSettings):
     ai_max_retries: int = Field(default=2, ge=0, le=5)
     ai_temperature: float | None = Field(default=0.2, ge=0, le=2)
     ai_max_tokens: int | None = Field(default=2000, ge=64, le=32_000)
+    # Segundos mínimos entre chamadas à IA (cotas gratuitas limitam chamadas por minuto).
+    ai_min_interval: float = Field(default=0.0, ge=0, le=120)
 
     # --- Classificação e relevância ----------------------------------------------------
     classification_rules_path: Path | None = None
@@ -81,6 +83,9 @@ class Settings(BaseSettings):
     curation_min_score: float = Field(default=65, ge=0, le=100)
     # Quantos candidatos do pré-filtro heurístico vão para a curadoria por IA por execução.
     curation_limit: int = Field(default=15, ge=1, le=200)
+    # Quantos candidatos do pré-filtro passam pela triagem em lote (25 por chamada) antes da
+    # curadoria completa. 0 desliga a triagem.
+    curation_triage_pool: int = Field(default=100, ge=0, le=1000)
     # Candidatos publicados há mais de N dias não vão para a curadoria por IA.
     curation_max_age_days: int = Field(default=60, ge=1, le=3650)
     # Quantas vezes a revisão editorial pode pedir uma nova versão da matéria.

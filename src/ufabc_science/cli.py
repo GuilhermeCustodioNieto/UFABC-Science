@@ -319,6 +319,7 @@ def _cmd_curate(args: argparse.Namespace, settings: Settings) -> int:
                 max_age_days=settings.curation_max_age_days,
                 min_abstract_words=settings.min_abstract_words,
                 article_ids=args.article_id,
+                triage_pool=settings.curation_triage_pool,
             )
     finally:
         engine.dispose()

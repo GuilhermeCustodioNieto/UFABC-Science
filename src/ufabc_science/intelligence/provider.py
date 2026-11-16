@@ -139,6 +139,10 @@ class MockProvider(AIProvider):
         }
 
 
+RATE_LIMIT_BASE_WAIT = 20.0
+RATE_LIMIT_MAX_WAIT = 120.0
+
+
 class OpenAICompatibleProvider(AIProvider):
     """Adaptador para APIs no formato ``POST {base_url}/chat/completions``."""
 
@@ -156,10 +160,16 @@ class OpenAICompatibleProvider(AIProvider):
         max_tokens: int | None = 2000,
         transport: httpx.BaseTransport | None = None,
         sleep: Callable[[float], None] = time.sleep,
+        min_interval: float = 0.0,
+        clock: Callable[[], float] = time.monotonic,
     ) -> None:
         self.base_url = base_url.rstrip("/")
         self.model = model
         self.max_retries = max_retries
+        # Intervalo mínimo entre requisições (cotas gratuitas limitam chamadas por minuto).
+        self.min_interval = min_interval
+        self._clock = clock
+        self._last_request: float | None = None
         self.temperature = temperature
         self.max_tokens = max_tokens
         self._sleep = sleep
@@ -190,6 +200,25 @@ class OpenAICompatibleProvider(AIProvider):
             body["max_tokens"] = self.max_tokens
         return body
 
+    def _throttle(self) -> None:
+        if self.min_interval and self._last_request is not None:
+            wait = self.min_interval - (self._clock() - self._last_request)
+            if wait > 0:
+                self._sleep(wait)
+        self._last_request = self._clock()
+
+    @staticmethod
+    def _retry_delay(response: httpx.Response | None, attempt: int) -> float:
+        """Espera antes de nova tentativa. Limite de requisições (429) espera bem mais:
+        respeita ``Retry-After`` quando o provedor informa."""
+        if response is not None and response.status_code == 429:
+            header = response.headers.get("retry-after", "")
+            try:
+                return min(max(float(header), 1.0), RATE_LIMIT_MAX_WAIT)
+            except ValueError:
+                return min(RATE_LIMIT_BASE_WAIT * (2**attempt), RATE_LIMIT_MAX_WAIT)
+        return 2.0 * (2**attempt)
+
     @staticmethod
     def _parse_content(content: str) -> dict[str, Any]:
         text = content.strip()
@@ -210,6 +239,8 @@ class OpenAICompatibleProvider(AIProvider):
         body = self._body(prompt, response_schema, system)
         last_error = "erro desconhecido"
         for attempt in range(self.max_retries + 1):
+            response: httpx.Response | None = None
+            self._throttle()
             try:
                 response = self._client.post(f"{self.base_url}/chat/completions", json=body)
             except httpx.TransportError as exc:
@@ -238,7 +269,7 @@ class OpenAICompatibleProvider(AIProvider):
                 if response.status_code not in (408, 429, 500, 502, 503, 504):
                     raise AIProviderError(f"Provedor respondeu {last_error}")
             if attempt < self.max_retries:
-                delay = 2.0 * (2**attempt)
+                delay = self._retry_delay(response, attempt)
                 logger.warning(
                     "IA: falha transitória (%s); nova tentativa em %.0fs", last_error, delay
                 )
@@ -262,4 +293,5 @@ def build_provider(
         temperature=settings.ai_temperature,
         max_tokens=settings.ai_max_tokens,
         transport=transport,
+        min_interval=settings.ai_min_interval,
     )

@@ -19,7 +19,8 @@ de descoberta. É melhor publicar menos matérias excelentes do que muitas media
 ```text
 coleta (consultas por editoria) → normalização/deduplicação → classificação por regras
 → pré-filtro heurístico (todas as pesquisas, sem IA, com regras de rejeição)
-→ curadoria por IA (lista curta: descoberta central, editorias, conexões, 5 notas)
+→ triagem por IA em lote (títulos e início do abstract dos 100 melhores, 25 por chamada)
+→ curadoria por IA (os 15 mais promissores: descoberta central, editorias, conexões, 5 notas)
 → decisão pelo código (nota ponderada + regras + travas dos metadados)
 → seleção das melhores (corte 65, sem cota por editoria, limite de dominância)
 → redação na estrutura nova → revisão editorial por IA (linguagem + fidelidade)
@@ -61,7 +62,7 @@ aplicadas sem IA. As demais são indicadas pela IA.
   `processing/curation.py`) pesam a favor em relevância e evidências. Isso substitui a regra
   antiga "sem critério de fonte", a pedido da política editorial (seção 4). Citações continuam
   fora da conta.
-- **Outras Ciências** (matemática, física, química, biologia, geologia...) só entram com nota 85+.
+- **Outras Ciências** (matemática, física, química, biologia, geologia...) só entram com nota 80+.
 
 ### Diversidade
 
@@ -99,6 +100,7 @@ Matérias antigas (7 seções) continuam válidas e são exibidas no formato ori
 
 | Prompt | Etapa | Responsabilidade |
 |---|---|---|
+| `triage_prompt` | triagem | Nota rápida de curiosidade para lotes de 25 títulos, para a curadoria completa ver os mais promissores e não só os favoritos da heurística. |
 | `curation_prompt` | curadoria | Descoberta central, nível de evidência, editorias, conexões entre áreas, 5 notas justificadas, regras de rejeição. |
 | `classification_prompt` | classificação (opcional, `--ai-classification`) | Casos que as regras não resolvem. |
 | `article_generation_prompt` | redação | Matéria na estrutura nova, com regras de linguagem, títulos e maturidade científica. |
@@ -142,13 +144,15 @@ rascunho traz `curation` (decisão e notas) e `editorial_review` (resultado da r
 | Variável | Padrão | Efeito |
 |---|---|---|
 | `CURATION_MIN_SCORE` | 65 | Nota mínima para virar matéria. |
+| `CURATION_TRIAGE_POOL` | 100 | Candidatos triados em lote (25 por chamada) antes da curadoria. |
 | `CURATION_LIMIT` | 15 | Candidatos avaliados pela IA por execução (1 chamada cada). |
+| `AI_MIN_INTERVAL` | 0 (8 no Actions) | Segundos entre chamadas; no HTTP 429 o sistema respeita `Retry-After` (ou espera 20/40/80 s). |
 | `CURATION_MAX_AGE_DAYS` | 60 | Idade máxima de publicação para ir à curadoria por IA. |
 | `EDITORIAL_REVIEW_ROUNDS` | 1 | Reescritas que a revisão pode pedir (0 a 3). |
 | `PRIORITY_*` | 85 / 75 / 65 | Faixas exibidas no `shortlist`. |
 
-Custo por execução com IA: até `CURATION_LIMIT` + `GENERATION_LIMIT` × (2 + 2 × rodadas)
-chamadas. Com os padrões, no pior caso 15 + 10 × 4 = 55. O tempo limite do job subiu para 90 min.
+Custo por execução com IA: até `CURATION_TRIAGE_POOL`/25 + `CURATION_LIMIT` +
+`GENERATION_LIMIT` × (2 + 2 × rodadas) chamadas. Com os padrões, no pior caso 4 + 15 + 10 × 4 = 59. O tempo limite do job subiu para 90 min.
 
 ## Limitações conhecidas
 

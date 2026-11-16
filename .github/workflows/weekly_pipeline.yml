@@ -75,6 +75,9 @@ jobs:
       # Respostas com raciocínio podem passar de 1 min; o Gemini às vezes responde 503.
       AI_TIMEOUT: ${{ vars.AI_TIMEOUT || '240' }}
       AI_MAX_RETRIES: ${{ vars.AI_MAX_RETRIES || '3' }}
+      # Cota gratuita do Gemini limita chamadas por minuto: espaça as chamadas e, no HTTP 429,
+      # espera Retry-After (ou 20/40/80 s) antes de tentar de novo.
+      AI_MIN_INTERVAL: ${{ vars.AI_MIN_INTERVAL || '8' }}
       AUTO_PUBLISH: ${{ vars.AUTO_PUBLISH || 'true' }}
       OUTPUT_DIR: dist
       OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}

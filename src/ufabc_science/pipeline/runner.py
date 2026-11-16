@@ -105,6 +105,7 @@ class RunSummary:
             ("Artigos duplicados (já existentes)", s.get("articles_duplicate", 0)),
             ("Possíveis duplicatas sinalizadas", s.get("possible_duplicates", 0)),
             ("Artigos classificados", s.get("articles_classified", 0)),
+            ("Triados pela IA (títulos)", s.get("curation_triaged", 0)),
             ("Avaliados pela curadoria (IA)", s.get("curated", 0)),
             ("Aprovados pela curadoria", s.get("curation_approved", 0)),
             ("Rejeitados pela curadoria", s.get("curation_rejected", 0)),
@@ -354,7 +355,9 @@ def _execute(
                 max_age_days=settings.curation_max_age_days,
                 min_abstract_words=settings.min_abstract_words,
                 today=today,
+                triage_pool=settings.curation_triage_pool,
             )
+        stats["curation_triaged"] = summary.triaged
         stats["curated"] = summary.assessed
         stats["curation_decisions"] = summary.decisions
         stats["curation_rejected"] = summary.decisions.get(REJECT, 0)

@@ -56,6 +56,7 @@ def test_prompts_are_versioned_and_contain_mandatory_rules() -> None:
     names = {p.name for p in ALL_PROMPTS}
     # Um prompt por etapa: curadoria, classificação, redação e revisão editorial.
     assert names == {
+        "triage_prompt",
         "curation_prompt",
         "classification_prompt",
         "article_generation_prompt",
@@ -158,3 +159,40 @@ def test_settings_require_model_and_url_for_external_provider() -> None:
         Settings(_env_file=None, ai_provider="openai_compatible", ai_base_url="http://x")
     with pytest.raises(ValidationError, match="AI_PROVIDER"):
         Settings(_env_file=None, ai_provider="desconhecido")
+
+
+def test_rate_limit_waits_longer_and_respects_retry_after() -> None:
+    waits: list[float] = []
+    responses = iter(
+        [
+            httpx.Response(429, headers={"Retry-After": "37"}),
+            httpx.Response(429),
+            _completion('{"categories": []}'),
+        ]
+    )
+    provider = OpenAICompatibleProvider(
+        base_url="http://localhost:11434/v1",
+        model="m",
+        transport=httpx.MockTransport(lambda request: next(responses)),
+        sleep=waits.append,
+        max_retries=3,
+    )
+    assert provider.generate_structured("p", {}).data == {"categories": []}
+    assert waits == [37.0, 40.0]  # Retry-After; depois 20 s x 2^1
+
+
+def test_minimum_interval_between_calls() -> None:
+    waits: list[float] = []
+    now = {"t": 100.0}
+    provider = OpenAICompatibleProvider(
+        base_url="http://localhost:11434/v1",
+        model="m",
+        transport=httpx.MockTransport(lambda request: _completion("{}")),
+        sleep=waits.append,
+        min_interval=8.0,
+        clock=lambda: now["t"],
+    )
+    provider.generate_structured("p", {})
+    now["t"] += 3.0
+    provider.generate_structured("p", {})
+    assert waits == [5.0]

@@ -167,6 +167,30 @@ publicada. Não invente nada que não esteja nos dados.
 $dados""",
 )
 
+TRIAGE_PROMPT = PromptTemplate(
+    name="triage_prompt",
+    version="2026-11-v1",
+    system=(
+        "Você faz a triagem inicial da UFABC Science: de uma lista de pesquisas recentes, "
+        "aponta quais têm mais chance de virar uma matéria que desperte curiosidade em qualquer "
+        "pessoa inteligente, não só em especialistas. Seja exigente e honesto.\n\n"
+        + _IDENTITY
+        + "\n\n"
+        + _BASE_RULES
+    ),
+    template="""Para cada pesquisa da lista, dê uma nota inteira de 0 a 100 em "curiosity":
+- 80+: descoberta surpreendente, invenção, avanço médico, algo sobre o universo, a mente ou a
+  sociedade que faria um leigo dizer "eu não sabia que isso era possível".
+- 50-79: interessante, mas de alcance menor ou difícil de explicar.
+- abaixo de 50: técnica, incremental, específica demais, revisão burocrática, protocolo,
+  anúncio ou opinião.
+Julgue pelo título e pelo início do abstract; popularidade do tema não basta. Em "reason",
+uma frase curta. Devolva um item para cada "id" recebido, sem inventar ids:
+{"items": [{"id": 0, "curiosity": 0, "reason": "..."}]}
+
+$dados""",
+)
+
 CLASSIFICATION_PROMPT = PromptTemplate(
     name="classification_prompt",
     version="2026-11-v2",
@@ -281,6 +305,7 @@ $dados""",
 HEADLINE_RULES = _HEADLINE_RULES
 
 ALL_PROMPTS = (
+    TRIAGE_PROMPT,
     CURATION_PROMPT,
     CLASSIFICATION_PROMPT,
     ARTICLE_GENERATION_PROMPT,

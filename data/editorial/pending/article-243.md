@@ -1,8 +1,8 @@
 ---
 schema: ufabc-science/article@1
 article_id: 243
-content_id: 17
-content_version: 2
+content_id: 26
+content_version: 3
 status: pending_review
 categories:
 - ciencias-biologicas
@@ -14,14 +14,17 @@ doi: null
 peer_review_status: preprint
 article_type: preprint
 original_title: 'ANTIOCH-VS: From Sequence to Hits with Modular, Open-Source Ensemble Virtual Screening'
-generated_at: '2026-11-15T06:57:22+00:00'
+generated_at: '2026-11-16T13:59:51+00:00'
 model_provider: openai_compatible
 model_name: gemini-3.6-flash
-prompt_version: 2026-11-v2
+prompt_version: 2026-11-v3
 verification_status: warning
 verification_messages:
 - 'WARNING: Registro sem DOI: confirme a fonte pelo link original.'
-generated_body_hash: c9c5539938eef68e7bc5ec70b5657d641c1ede2acde54da965eb001bc1fd5ab4
+- 'WARNING: O gerador indicou pontos para verificação humana. (O termo ''State Predictive Information
+  Bottleneck'' foi traduzido como ''análise por gargalo de informação preditiva de estado''.; O termo
+  ''physics-based metadynamics (CTMD)'' foi traduzido como ''metadinâmica baseada em física (CTMD)''.)'
+generated_body_hash: 895abc604e93f93fdc4c624c1f70435a475a0bc6616345218211a8f0b59abcf4
 reviewer: null
 reviewed_at: null
 editorial_notes: null
@@ -29,35 +32,35 @@ warning_justification: null
 edition_slug: null
 ---
 
-# ANTIOCH-VS: nova ferramenta de código aberto automatiza a triagem virtual de candidatos a fármacos a partir da sequência de proteínas
+# Plataforma computacional ANTIOCH-VS identifica potenciais ligantes proteicos a partir da sequencia de aminoacidos
 
 ## Introdução
 
-Um estudo recente, disponibilizado como preprint (ainda sem revisão por pares), apresentou o ANTIOCH-VS, um arcabouço computacional de código aberto para triagem virtual in silico. A ferramenta automatiza todo o processo de identificação de candidatos a ligantes a partir apenas da sequência de aminoácidos da proteína-alvo. O objetivo é contornar a escassez de estruturas cristalinas ligadas a moléculas no banco de dados publicamente disponível, permitindo realizar campanhas integradas de varredura molecular sem intervenção manual.
+Pesquisadores desenvolveram a ANTIOCH-VS, uma plataforma de código aberto que automatiza a busca por moléculas capazes de se ligar a proteínas utilizando apenas a sequência de aminoácidos como ponto de partida. O sistema combina modelos de inteligência artificial com simulações computacionais de dinâmica molecular para mapear diferentes conformações de receptores. O trabalho foi publicado como um preprint no repositório arXiv e ainda não passou pelo processo de revisão por pares.
 
 ## Contexto científico
 
-A triagem virtual baseada na estrutura de receptores é uma etapa fundamental na descoberta computacional de medicamentos. No entanto, a maioria dos alvos terapêuticos não possui estruturas cristalizadas ligadas a ligantes. Utilizar apenas uma estrutura cristalina sem ligante (apo) ou um único modelo previsto por computador pode falhar em capturar a conformação exata necessária para a ligação química. Para resolver isso, o ANTIOCH-VS integra subamostragem por alinhamento múltiplo de sequências reduzido via ColabFold com o AF2RAVE — método que combina simulações de dinâmica molecular curtas e análise estatística — para gerar e selecionar estados conformacionais metastáveis adequados para acoplamento (docking).
+O rastreamento virtual baseado em estrutura depende do conhecimento da forma tridimensional do receptor proteico. Contudo, para a maioria dos alvos biológicos, não existem estruturas cristalográficas obtidas em complexo com ligantes. Modelos preditivos individuais ou estruturas no estado livre (apo) frequentemente não capturam os estados conformacionais aptos à ligação. Para superar essa barreira, a triagem por conjunto conformacional gera múltiplas estruturas possíveis da proteína, aumentando as chances de identificar conformações metastáveis adequadas para o acoplamento molecular (docking) com pequenas moléculas.
 
 ## O que foi investigado?
 
-É possível desenvolver um fluxo de trabalho computacional automatizado e de código aberto que, utilizando exclusivamente a sequência de uma proteína, gere conjuntos de conformações capazes de prever e ranquear com precisão ligantes promissores, alcançando desempenho comparável ao de estruturas obtidas por difração de raios X ligadas a moléculas?
+É possível automatizar o processo de triagem virtual computacional a partir de uma sequência de aminoácidos sem dados estruturais prévios com ligantes, mantendo a precisão na seleção de moléculas promissoras em comparação a modelos estruturais tradicionais?
 
 ## Como a pesquisa foi realizada?
 
-Os pesquisadores construíram o fluxo integrado ANTIOCH-VS. O processo inicia na sequência da proteína, gera um conjunto conformacional via ColabFold e seleciona estados relevantes via AF2RAVE. Em seguida, detecta a cavidade de ligação, prepara ligantes e receptores, realiza o acoplamento molecular da biblioteca usando DOCK6 ou AutoDock Vina, gera um ranqueamento de consenso e tria os melhores candidatos por metadinâmica (CTMD). Para testar o sistema simulado, utilizaram conjuntos de dados do benchmark DUD-E para dois alvos distintos: a quinase JAK2 e o receptor GPCR ADRB2.
+O fluxo computacional inicia gerando conjuntos conformacionais por subamostragem de alinhamento múltiplo de sequências no ColabFold. Em seguida, o método AF2RAVE realiza simulações curtas de dinâmica molecular e análise por gargalo de informação preditiva de estado para selecionar estados metastáveis ponderados por Boltzmann. A plataforma detecta a cavidade de ligação, prepara receptores e ligantes, executa acoplamento molecular da biblioteca com DOCK6 ou AutoDock Vina, estabelece um ranking de consenso e tria as moléculas finais por metadinâmica baseada em física (CTMD).
 
 ## Principais resultados
 
-Por se tratar de um estudo de simulação computacional, os resultados refletem o desempenho do modelo in silico nos testes de validação. Partindo unicamente da sequência proteica e sem intervenção manual, a ferramenta gerou listas dos 20 melhores candidatos altamente enriquecidas com ligantes verdadeiros. A taxa de acerto simulada foi de 20% para a quinase JAK2 e de 60% para o receptor ADRB2, em comparação com uma taxa aleatória estimada de 1% a 2%. O desempenho obtido pelas simulações ficou no mesmo patamar do uso de estruturas cristalinas ligadas a ligantes e, no caso da JAK2, superou os resultados de modelos isolados do AlphaFold2 e de estruturas cristalinas sem ligante.
+Em testes computacionais de referência com conjuntos de dados DUD-E para os alvos JAK2 e ADRB2, a plataforma ANTIOCH-VS produziu listas dos 20 melhores candidatos enriquecidas com ligantes verdadeiros. Partindo apenas da sequência de aminoácidos, o fluxo simulado atingiu uma taxa de acerto de 20% para a quinase JAK2 e de 60% para o GPCR ADRB2, superando a taxa aleatória estimada em cerca de 1% a 2%. No caso da quinase JAK2, o desempenho simulado superou modelos individuais do AlphaFold2 e a estrutura de um cristal apo, igualando-se aos resultados obtidos com cristais complexados a ligantes.
 
 ## Limitações
 
-As limitações específicas da metodologia computacional ou os limites de aplicabilidade a outras classes de proteínas não foram informados no resumo fornecido. Além disso, por se tratar de um trabalho disponibilizado em formato preprint, o estudo ainda não passou pelo processo formal de revisão por pares pela comunidade científica.
+As limitações específicas do sistema ou restrições do algoritmo não foram informadas explicitamente no resumo da fonte. A validação apresentada no estudo limitou-se ao teste simulado em dois alvos computacionais específicos (JAK2 e ADRB2).
 
 ## Por que isso importa?
 
-A pesquisa é de grande interesse para estudantes e pesquisadores da UFABC nas áreas de bioinformática, biociências, química medicinal e computação. Por ser uma ferramenta modular de código aberto, o ANTIOCH-VS permite que alunos executem simulações de triagem virtual de alta precisão em estações de trabalho ou computadores de alto desempenho, impulsionando projetos de pesquisa em modelagem molecular.
+O trabalho é relevante para a comunidade acadêmica da UFABC nas áreas de bioinformatica, ciência da computação, biotecnologia e química medicinal. A disponibilidade da plataforma como ferramenta de código aberto permite que estudantes e pesquisadores apliquem o fluxo automatizado em projetos de biologia computacional e triagem de fármacos in silico.
 
 ## Referência
 

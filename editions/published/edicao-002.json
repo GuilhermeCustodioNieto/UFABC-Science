@@ -1,0 +1,35 @@
+{
+  "schema": "ufabc-science/edition-publication@1",
+  "edition_number": 2,
+  "slug": "edicao-002",
+  "title": "UFABC Science — Edição 002",
+  "week": "2026-W47",
+  "start_date": "2026-11-16",
+  "end_date": "2026-11-22",
+  "published_at": "2026-11-16T14:01:39.518468+00:00",
+  "published_by": "Publicação automática",
+  "introduction": "Nesta edição, reunimos 2 pesquisas recentes em Computação e Tecnologia e Ciências Biológicas.\n\nOs resumos foram escritos por inteligência artificial a partir dos dados públicos de cada estudo e só entraram na edição depois de passar por todas as checagens automáticas de fidelidade (números, autores, DOI, link e identificação de preprints). **Não houve revisão humana.** Consulte sempre a pesquisa original pelo link em cada texto.",
+  "introduction_reviewer": "Publicação automática",
+  "items": [
+    {
+      "position": 1,
+      "article_id": 62,
+      "editorial_section": "computacao-e-tecnologia",
+      "review_id": 22,
+      "content_hash": "31546a905da4808625f1fdf3dd299eae43860f462906bd0e35b40e73811a6c59",
+      "reviewer": "Publicação automática",
+      "doi": "10.1186/s12909-026-10743-4",
+      "title": "AI-enabled digital resources for biochemistry and molecular biology education: development and empirical assessment via teacher-student surveys"
+    },
+    {
+      "position": 2,
+      "article_id": 77,
+      "editorial_section": "ciencias-biologicas",
+      "review_id": 23,
+      "content_hash": "18293e00118e04b3f3da5e0a01daec89854929cb3233aa9281c7f3537f4f0c66",
+      "reviewer": "Publicação automática",
+      "doi": "10.1007/s10633-026-10166-y",
+      "title": "Rare genetic variants in leber hereditary optic neuropathy: molecular mechanisms, diagnosis, and emerging therapies"
+    }
+  ]
+}

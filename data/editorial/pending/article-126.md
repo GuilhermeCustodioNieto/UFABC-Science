@@ -1,8 +1,8 @@
 ---
 schema: ufabc-science/article@1
 article_id: 126
-content_id: 15
-content_version: 2
+content_id: 24
+content_version: 3
 status: pending_review
 categories:
 - ciencias-biologicas
@@ -15,14 +15,14 @@ peer_review_status: verified
 article_type: journal_article
 original_title: 'scMINA: an interpretable workflow for paired scRNA-scATAC multiome integration and regulatory
   prioritization.'
-generated_at: '2026-11-15T06:56:47+00:00'
+generated_at: '2026-11-16T13:59:11+00:00'
 model_provider: openai_compatible
 model_name: gemini-3.6-flash
-prompt_version: 2026-11-v2
+prompt_version: 2026-11-v3
 verification_status: warning
 verification_messages:
 - 'WARNING: O abstract menciona limitações, mas o texto diz que elas não foram informadas.'
-generated_body_hash: a53d7c88f51c0dad71908250500afea8436d01e1c4cf9a342cfa1ff1a0ee863f
+generated_body_hash: d0990e2d798c87355ecc5328d57b733fe27bfa70da0ecb1ef847cfa7334828bb
 reviewer: null
 reviewed_at: null
 editorial_notes: null
@@ -30,35 +30,35 @@ warning_justification: null
 edition_slug: null
 ---
 
-# scMINA: novo fluxo de trabalho para integração e interpretação de dados multiômicos de célula única
+# Novo fluxo de análise scMINA integra dados genômicos e epigenômicos para investigar a doença de Alzheimer
 
 ## Introdução
 
-As tecnologias multiômicas de célula única permitem analisar simultaneamente o transcriptoma e o estado epigenômico celular. No entanto, a análise conjunta de dados pareados de sequenciamento de RNA de célula única (scRNA-seq) e acessibilidade da cromatina (scATAC-seq) enfrenta grandes desafios computacionais devido a variações técnicas específicas e à complexidade de integração. Para contornar essas limitações, pesquisadores desenvolveram o scMINA (sigla em inglês para single-cell Multimodal Integration and Network Attribution), um fluxo de trabalho analítico modular e interpretável focado no estudo dessas duas modalidades celulares.
+O fluxo de trabalho computacional scMINA combina dados de RNA e de acessibilidade da cromatina em nível de célula única para detalhar mecanismos de regulação gênica. A ferramenta utiliza módulos de correção de variações técnicas e inteligência artificial explicável para identificar fatores regulatórios. Ao analisar dados do atlas cerebral da doença de Alzheimer de Seattle, os autores mapearam populações gliais e identificaram elementos associados à patologia.
 
 ## Contexto científico
 
-O estudo simultâneo do RNA celular e da estrutura da cromatina é essencial para entender a heterogeneidade celular e os mecanismos de regulação gênica em doenças complexas. Contudo, combinar scRNA-seq e scATAC-seq gera dificuldades de interpretação biológica sobre como os genes e fatores de transcrição atuam. O scMINA utiliza estratégias baseadas em inteligência artificial explicável para priorizar genes candidatos e fatores de transcrição ligados às alterações regulatórias e à variabilidade dos estados celulares. A ferramenta corrige variações técnicas e covariáveis, organizando a análise em módulos coordenados para integrar as informações transcriptômicas e epigenômicas de forma sistemática.
+As tecnologias de multiômica em célula única permitem analisar ao mesmo tempo a expressão gênica, via RNA-seq, e a estrutura da cromatina, via ATAC-seq. A abordagem ajuda a compreender a heterogeneidade das células e o funcionamento dos genes em doenças complexas. No entanto, o processamento conjunto dessas informações enfrenta desafios computacionais por causa de ruídos técnicos específicos de cada metodologia, alta complexidade de integração e dificuldade para interpretar os dados regulatórios obtidos.
 
 ## O que foi investigado?
 
-Como integrar eficientemente dados pareados de scRNA-seq e scATAC-seq de célula única e priorizar de forma interpretável os fatores de transcrição e genes candidatos associados à heterogeneidade celular e alterações regulatórias relacionadas a doenças?
+Como integrar dados pareados de sequenciamento de RNA e acessibilidade de cromatina em célula única para identificar, de forma interpretável, os genes e fatores de transcrição ligados a alterações em doenças?
 
 ## Como a pesquisa foi realizada?
 
-A ferramenta scMINA é estruturada em módulos coordenados voltados para integração multimodal, correção de covariáveis técnicas e priorização de recursos regulatórios. Ela incorpora técnicas de inteligência artificial explicável para atrelar a atribuição de rede à identificação de genes e fatores de transcrição. Para testar o fluxo de trabalho, os autores aplicaram o scMINA em dados de multiômica de célula única obtidos do Seattle Alzheimer's Disease Brain Cell Atlas, focando na caracterização de populações celulares e feições regulatórias.
+Os pesquisadores criaram o scMINA, um sistema estruturado em módulos para integrar dados multimodais, corrigir covariáveis técnicas e ranquear recursos regulatórios. O método aplica estratégias de atribuição baseadas em inteligência artificial explicável para priorizar genes e fatores de transcrição candidatos. A validação foi feita com dados de células cerebrais do Seattle Alzheimer's Disease Brain Cell Atlas.
 
 ## Principais resultados
 
-A aplicação do scMINA aos dados do Seattle Alzheimer's Disease Brain Cell Atlas demonstrou que o fluxo de trabalho foi capaz de resolver de forma robusta as principais populações de células gliais. Além disso, a ferramenta identificou com sucesso características regulatórias diretamente associadas à patologia da doença de Alzheimer. Ao unir a integração multimodal à priorização regulatória interpretável, o scMINA forneceu um fluxo de trabalho prático para a análise sistemática e a interpretação biológica de conjuntos de dados que combinam sequenciamento de RNA e acessibilidade da cromatina em nível de célula única.
+A aplicação do scMINA diferenciou com precisão as principais populações de células gliais no banco de dados testado. A ferramenta também identificou e priorizou marcadores regulatórios e fatores de transcrição diretamente associados à patologia da doença de Alzheimer, conectando a integração de dados multimodais à interpretação biológica dos resultados.
 
 ## Limitações
 
-As limitações específicas do fluxo de trabalho scMINA, bem como eventuais restrições técnicas, computacionais ou de generalização para outros tecidos e conjuntos de dados, não foram informadas na fonte disponibilizada.
+As limitações do estudo não foram informadas no texto original fornecido.
 
 ## Por que isso importa?
 
-O desenvolvimento do scMINA é de grande interesse para estudantes e pesquisadores da UFABC nas áreas de computação, biotecnologia, neurociência e bioinformática. A combinação de técnicas de inteligência artificial explicável com biologia molecular oferece um exemplo prático de como algoritmos avançados ajudam a desvendar mecanismos de doenças complexas, como o Alzheimer.
+A pesquisa é de interesse para alunos e pesquisadores da UFABC vinculados aos cursos de Biotecnologia, Ciência da Computação, Neurociência e Ciências Biológicas. O trabalho exemplifica a aplicação prática de inteligência artificial explicável na resolução de problemas complexos de bioinformática e genômica.
 
 ## Referência
 

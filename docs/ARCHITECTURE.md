@@ -13,8 +13,9 @@ flowchart TD
     C --> N[processing.normalization]
     N --> D[processing.deduplication + repositories.articles]
     D --> K[processing.classification]
-    K --> R[processing.relevance]
-    R --> G[intelligence.generation]
+    K --> R[processing.relevance: pré-filtro]
+    R --> C[processing.curation: IA]
+    C --> G[intelligence.generation + revisão editorial]
     G --> V[intelligence.verification]
     V --> M[editorial.markdown: pending/]
     M -->|editor humano| A[editorial.approval: sync]
@@ -97,3 +98,10 @@ flowchart TD
 | D30 | Persistência: branch dedicada `data` (Alternativa A) | Ver `PERSISTENCE_STRATEGY.md`. |
 | D31 | Trava por arquivo + verificação de `RUNNING` + `concurrency` no workflow | Proteção contra execuções simultâneas. |
 | D32 | Actions fixadas por SHA de commit | Controle de versões (Etapa 5 §6). |
+
+## Curadoria editorial (novembro de 2026)
+
+A seleção, as editorias, a estrutura das matérias e os prompts foram reformulados. Decisões,
+critérios, prompts e limitações estão em [`CURADORIA_EDITORIAL.md`](CURADORIA_EDITORIAL.md). As
+decisões D18, D33 e D34 acima foram substituídas: a relevância agora é `curation-heuristic-v1`
+(pré-filtro) + curadoria por IA, e a classificação é `rules-v3`.

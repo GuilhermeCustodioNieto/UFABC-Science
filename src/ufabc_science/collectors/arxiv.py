@@ -87,11 +87,15 @@ class ArxivCollector(BaseCollector):
     base_url = "https://export.arxiv.org/api/query"
     source_type = SourceType.FEED
     min_interval = 3.0
+    # Uma consulta por grupo de editorias (política editorial, seção 2).
     default_queries = (
-        "cat:cs.AI OR cat:cs.LG OR cat:cs.CL OR cat:cs.CV OR cat:cs.RO OR cat:cs.CR",
-        "cat:q-bio.NC OR cat:q-bio.GN OR cat:q-bio.BM OR cat:q-bio.PE",
-        "cat:quant-ph OR cat:cond-mat.mtrl-sci OR cat:physics.app-ph OR cat:astro-ph.EP "
-        "OR cat:eess.SY OR cat:math.OC",
+        "cat:cs.AI OR cat:cs.LG OR cat:cs.CL OR cat:cs.CV OR cat:cs.RO OR cat:cs.HC "
+        "OR cat:cs.NE OR cat:quant-ph",
+        "cat:astro-ph.EP OR cat:astro-ph.GA OR cat:astro-ph.CO OR cat:astro-ph.HE "
+        "OR cat:astro-ph.SR OR cat:gr-qc",
+        "cat:physics.space-ph OR cat:physics.flu-dyn OR cat:eess.SY OR cat:physics.app-ph",
+        "cat:q-bio.NC OR cat:q-bio.QM OR cat:q-bio.BM OR cat:q-bio.TO",
+        "cat:econ.GN OR cat:econ.TH OR cat:physics.soc-ph OR cat:cs.CY",
     )
 
     def _collect_query(

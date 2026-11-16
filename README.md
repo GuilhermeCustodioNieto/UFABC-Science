@@ -17,7 +17,9 @@ publicação no GitHub Pages está **preparada, mas não configurada** neste rep
 
 - Coletar artigos do **OpenAlex, PubMed, arXiv e Crossref** (APIs oficiais e gratuitas).
 - Normalizar para uma estrutura única, deduplicar sem descartar registros indevidamente.
-- Classificar nas cinco editorias e calcular uma prioridade editorial (0 a 100).
+- Selecionar primeiro as descobertas interessantes (curiosidade, relevância, novidade, impacto
+  e evidências, de 0 a 100, com regras de rejeição) e depois classificá-las em nove editorias,
+  incluindo Intersecções Científicas. Ver [`docs/CURADORIA_EDITORIAL.md`](docs/CURADORIA_EDITORIAL.md).
 - Gerar rascunhos em português **a partir apenas dos dados coletados**, com verificação
   determinística (`PASSED` / `WARNING` / `FAILED`).
 - Revisão humana em **arquivos Markdown** (sem painel administrativo).
@@ -29,8 +31,8 @@ publicação no GitHub Pages está **preparada, mas não configurada** neste rep
 Monólito modular orientado a pipeline; cada etapa pode ser executada isoladamente.
 
 ```text
-collectors → normalization → deduplication → classification → relevance
-→ generation (IA) → verification → Markdown (humano) → approval → edition → HTML → Pages
+collectors → normalization → deduplication → classification → relevance (pré-filtro)
+→ curation (IA) → generation (IA) → editorial review (IA) → verification → Markdown (humano) → approval → edition → HTML → Pages
 ```
 
 Detalhes: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · modelo de dados:
@@ -96,7 +98,9 @@ python -m ufabc_science edition publish --edition 1 --by "Seu nome" --confirm
 | `collect [--days N \| --start D --end D] [--sources a,b] [--query Q] [--limit N] [--no-enrich] [--json]` | Coleta, normaliza, deduplica e persiste; confirma DOIs no Crossref. |
 | `enrich [--limit N]` | Confirma publicação/metadados por DOI no Crossref. |
 | `classify [--article-id 1,2] [--all] [--ai]` | Classificação por regras (IA opcional nos casos ambíguos). |
-| `score [--article-id ..] [--all]` | Relevância editorial (histórico preservado). |
+| `score [--article-id ..] [--all]` | Pré-filtro da curadoria, sem IA (histórico preservado). |
+| `curate [--limit N] [--article-id ..]` | Curadoria por IA: descoberta central, editorias, notas e decisão. |
+| `explain [--article-id ..] [--decision reject]` | Explica por que cada artigo foi aprovado ou rejeitado. |
 | `shortlist [--limit 20]` | Artigos prioritários com faixa de prioridade. |
 | `generate [--limit N] [--article-id ..] [--force]` | Gera, verifica e exporta rascunhos Markdown. |
 | `verify [--article-id ..]` | Reexecuta a verificação determinística. |

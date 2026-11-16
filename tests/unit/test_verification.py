@@ -206,3 +206,114 @@ def test_atypical_sources_are_flagged_for_the_editor() -> None:
     assert check.status is VerificationStatus.WARNING
     assert any("OSF" in d for d in check.details)
     assert any("abstract atípico" in d for d in check.details)
+
+
+# --- Estrutura atual (curadoria editorial) -------------------------------------------------
+
+
+def make_story(article: Article, **fields: object) -> ContentUnderReview:
+    sections = {
+        "discovery": (
+            "Uma rede neural conseguiu apoiar a triagem de retinopatia diabética. Treinada com "
+            "1.200 imagens de 300 pacientes, ela atingiu acurácia de 0,94 nas imagens de retina."
+        ),
+        "how_it_works": (
+            "A rede aprende padrões nas imagens da retina. Ela compara cada imagem com milhares "
+            "de exemplos já classificados por médicos."
+        ),
+        "why_it_matters": "A triagem ficou 35% mais rápida, o que pode ajudar hospitais.",
+        "limitations": (
+            "Os dados vieram de um único hospital. Ainda falta testar a rede em outras populações."
+        ),
+    }
+    sections.update({k: v for k, v in fields.items() if k in sections})  # type: ignore[misc]
+    values = {
+        "headline": "Rede neural deixa triagem de retinopatia 35% mais rápida",
+        "original_title": article.title,
+        "sections": sections,
+        "reference": build_reference(article),
+        "source_url": source_url_for(article) or "",
+        "subtitle": "Sistema treinado com imagens de retina pode ajudar a priorizar pacientes.",
+    }
+    values.update({k: v for k, v in fields.items() if k not in sections})
+    return ContentUnderReview(**values)  # type: ignore[arg-type]
+
+
+def test_story_structure_passes() -> None:
+    article = make_article()
+    report = verify_content(article, make_story(article))
+    assert report.status is VerificationStatus.PASSED, report.as_dict()
+
+
+def test_subtitle_is_required() -> None:
+    article = make_article()
+    report = verify_content(article, make_story(article, subtitle=""))
+    assert statuses(report)["sections_missing"] is VerificationStatus.FAILED
+
+
+@pytest.mark.parametrize(
+    "headline",
+    [
+        "Estudo de retinopatia: uma análise",
+        "Uma rede neural pode substituir médicos?",
+        "Rede neural " + "muito " * 30 + "rápida",
+    ],
+)
+def test_headline_style(headline: str) -> None:
+    article = make_article()
+    report = verify_content(article, make_story(article, headline=headline))
+    assert statuses(report)["headline_style"] is VerificationStatus.WARNING
+
+
+def test_cliches_and_em_dashes_are_flagged() -> None:
+    article = make_article()
+    story = make_story(
+        article,
+        how_it_works="Vale destacar que a rede aprende padrões — como um médico experiente.",
+    )
+    report = verify_content(article, story)
+    check = next(c for c in report.checks if c.code == "style")
+    assert check.status is VerificationStatus.WARNING
+    assert any("vale" in d for d in check.details) and any("travess" in d for d in check.details)
+
+
+def test_long_sentences_ask_for_simpler_text() -> None:
+    article = make_article()
+    long_sentence = "A rede " + "aprende padrões complexos nas imagens " * 12 + "da retina."
+    report = verify_content(article, make_story(article, how_it_works=long_sentence))
+    assert statuses(report)["readability"] is VerificationStatus.WARNING
+
+
+def test_animal_study_must_be_disclosed_and_not_sold_as_treatment() -> None:
+    article = make_article(
+        abstract=ABSTRACT.replace("from 300 patients", "from 300 mice in vivo"),
+    )
+    report = verify_content(article, make_story(article))
+    assert statuses(report)["maturity_unstated"] is VerificationStatus.WARNING
+
+    overclaim = make_story(
+        article,
+        why_it_matters=(
+            "O método em camundongos já pode ser usado em pacientes como tratamento eficaz."
+        ),
+    )
+    report = verify_content(article, overclaim)
+    assert statuses(report)["maturity_overclaim"] is VerificationStatus.WARNING
+    assert "maturity_unstated" not in statuses(report)
+
+
+def test_failed_editorial_review_blocks_automatic_publication() -> None:
+    article = make_article()
+    review = {"approved": False, "rounds": [{"problems": ["Texto técnico demais."]}]}
+    report = verify_content(article, make_story(article, editorial_review=review))
+    assert statuses(report)["editorial_review"] is VerificationStatus.WARNING
+    approved = {"approved": True, "rounds": [{"problems": []}]}
+    report = verify_content(article, make_story(article, editorial_review=approved))
+    assert "editorial_review" not in statuses(report)
+
+
+def test_legacy_content_is_still_verified_with_old_sections() -> None:
+    article = make_article()
+    report = verify_content(article, make_content(article), word_limits={"total": (0, 1000)})
+    assert "sections_missing" not in statuses(report)
+    assert "style" not in statuses(report)

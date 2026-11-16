@@ -73,6 +73,12 @@ class RuleSet:
     # Categorias secundárias precisam de confiança >= relative_threshold x a principal.
     relative_threshold: float = 0.6
     max_categories: int = 3
+    # Editoria atribuída quando duas áreas diferentes aparecem com confiança.
+    interdisciplinary_slug: str | None = None
+    interdisciplinary_min_confidence: float = 0.5
+    interdisciplinary_excluded: frozenset[str] = frozenset()
+    # Pares de áreas vizinhas que, sozinhos, não caracterizam interdisciplinaridade.
+    interdisciplinary_adjacent: frozenset[frozenset[str]] = frozenset()
 
 
 def _normalize(text: str) -> str:
@@ -115,6 +121,16 @@ def parse_rules(data: dict[str, Any]) -> RuleSet:
         categories=tuple(categories),
         relative_threshold=float(data.get("relative_threshold", 0.6)),
         max_categories=int(data.get("max_categories", 3)),
+        interdisciplinary_slug=(data.get("interdisciplinary") or {}).get("slug"),
+        interdisciplinary_min_confidence=float(
+            (data.get("interdisciplinary") or {}).get("min_confidence", 0.5)
+        ),
+        interdisciplinary_excluded=frozenset(
+            (data.get("interdisciplinary") or {}).get("excluded", [])
+        ),
+        interdisciplinary_adjacent=frozenset(
+            frozenset(pair) for pair in (data.get("interdisciplinary") or {}).get("adjacent", [])
+        ),
     )
 
 
@@ -252,11 +268,66 @@ def classify_text(
                 uncertain=uncertain,
             )
         )
+    _add_interdisciplinary(result, rules)
     if not result.assignments:
         result.ambiguous = result.evidence_without_category
     elif all(a.uncertain for a in result.assignments):
         result.ambiguous = True
     return result
+
+
+def _add_interdisciplinary(result: ClassificationResult, rules: RuleSet) -> None:
+    """Pesquisa que conecta duas áreas com confiança também entra em Intersecções."""
+    slug = rules.interdisciplinary_slug
+    if not slug:
+        return
+    areas = [
+        a
+        for a in result.assignments
+        if a.slug != slug
+        and a.slug not in rules.interdisciplinary_excluded
+        and not a.uncertain
+        and a.confidence >= rules.interdisciplinary_min_confidence
+    ]
+    distant = [
+        (a, b)
+        for i, a in enumerate(areas)
+        for b in areas[i + 1 :]
+        if frozenset((a.slug, b.slug)) not in rules.interdisciplinary_adjacent
+    ]
+    if not distant:
+        return
+    first, second = distant[0]
+    names = f"{first.slug} + {second.slug}"
+    confidence = round(min(1.0, max(first.confidence, second.confidence)), 3)
+    existing = next((a for a in result.assignments if a.slug == slug), None)
+    justification = f"Regras {rules.version}: pesquisa que conecta {names}"
+    if existing is not None:
+        existing.confidence = max(existing.confidence, confidence)
+        existing.uncertain = False
+        existing.justification += f"; conecta {names}"
+        return
+    result.assignments.append(
+        CategoryAssignment(
+            slug=slug,
+            confidence=confidence,
+            method=ClassificationMethod.RULE_BASED,
+            justification=justification,
+        )
+    )
+
+
+def primary_category(links: list[ArticleCategory]) -> str | None:
+    """Editoria principal: Intersecções quando a pesquisa conecta áreas com confiança;
+    senão, a de maior confiança."""
+    from ufabc_science.domain.schemas import INTERDISCIPLINARY_CATEGORY
+
+    if not links:
+        return None
+    for link in links:
+        if link.category.slug == INTERDISCIPLINARY_CATEGORY and not link.is_uncertain:
+            return link.category.slug
+    return max(links, key=lambda link: link.confidence).category.slug
 
 
 # --- Fase B -----------------------------------------------------------------------------

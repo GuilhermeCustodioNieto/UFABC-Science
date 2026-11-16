@@ -71,9 +71,20 @@ class Settings(BaseSettings):
     classification_rules_path: Path | None = None
     classification_min_confidence: float = Field(default=0.35, ge=0, le=1)
     classification_uncertain_below: float = Field(default=0.5, ge=0, le=1)
+    # Faixas da política editorial: 85+ prioridade, 75+ publicar, 65+ avaliar.
     priority_very_high: float = Field(default=85, ge=0, le=100)
-    priority_high: float = Field(default=70, ge=0, le=100)
-    priority_moderate: float = Field(default=50, ge=0, le=100)
+    priority_high: float = Field(default=75, ge=0, le=100)
+    priority_moderate: float = Field(default=65, ge=0, le=100)
+
+    # --- Curadoria editorial (processing/curation.py) ---------------------------------
+    # Nota mínima para virar matéria (abaixo disso, rejeitar).
+    curation_min_score: float = Field(default=65, ge=0, le=100)
+    # Quantos candidatos do pré-filtro heurístico vão para a curadoria por IA por execução.
+    curation_limit: int = Field(default=15, ge=1, le=200)
+    # Candidatos publicados há mais de N dias não vão para a curadoria por IA.
+    curation_max_age_days: int = Field(default=60, ge=1, le=3650)
+    # Quantas vezes a revisão editorial pode pedir uma nova versão da matéria.
+    editorial_review_rounds: int = Field(default=1, ge=0, le=3)
 
     # --- Geração -----------------------------------------------------------------------
     generation_limit: int = Field(default=10, ge=1, le=500)

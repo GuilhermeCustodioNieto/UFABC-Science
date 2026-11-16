@@ -127,6 +127,10 @@ def workspace(tmp_path: Path) -> Iterator[Workspace]:
         http_backoff_seconds=0,
         http_max_retries=1,
         min_abstract_words=40,
+        # As fixtures da API são artigos reais pouco interessantes ao público geral: a
+        # curadoria os rejeita por nota. Os testes de fluxo usam corte zero; a curadoria tem
+        # testes próprios (tests/unit/test_curation.py).
+        curation_min_score=0,
     )
     engine = create_db_engine(url)
     yield Workspace(tmp_path, settings, engine, create_session_factory(engine))

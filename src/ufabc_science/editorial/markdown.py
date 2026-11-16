@@ -21,7 +21,13 @@ import frontmatter
 import yaml
 
 from ufabc_science.domain.enums import EditorialStatus
-from ufabc_science.intelligence.schemas import SECTION_FIELDS, SECTION_TITLES
+from ufabc_science.intelligence.schemas import (
+    LEGACY_SECTION_TITLES,
+    SECTION_FIELDS,
+    SECTION_TITLES,
+    SUBTITLE_TITLE,
+    is_legacy,
+)
 
 SCHEMA_ID = "ufabc-science/article@1"
 EDITION_SCHEMA_ID = "ufabc-science/edition@1"
@@ -34,7 +40,13 @@ STATUS_DIRS = {
     EditorialStatus.REJECTED: "rejected",
 }
 EDITORIAL_SUBDIRS = ("pending", "approved", "rejected")
-_TITLE_TO_FIELD = {title.casefold(): name for name, title in SECTION_TITLES.items()}
+# Títulos antigos e atuais. "Por que isso importa?" existe nos dois formatos: é lido como
+# ``why_it_matters`` e convertido para ``ufabc_relevance`` quando o texto é do formato antigo.
+_TITLE_TO_FIELD = {
+    **{title.casefold(): name for name, title in LEGACY_SECTION_TITLES.items()},
+    **{title.casefold(): name for name, title in SECTION_TITLES.items()},
+    SUBTITLE_TITLE.casefold(): "subtitle",
+}
 _LINK = re.compile(r"\[(?P<label>[^\]]+)\]\((?P<url>[^)\s]+)\)")
 
 # Ordem estável das chaves do front matter (diffs legíveis no Git).
@@ -117,8 +129,17 @@ class ArticleDocument:
         return self.metadata.get("generated_body_hash") != self.current_hash
 
 
-def render_body(headline: str, sections: dict[str, str], reference: str, source_url: str) -> str:
+def render_body(
+    headline: str,
+    sections: dict[str, str],
+    reference: str,
+    source_url: str,
+    subtitle: str = "",
+) -> str:
+    """Corpo Markdown: título, subtítulo (linha ``> ``), seções, referência e link."""
     lines = [f"# {headline.strip()}", ""]
+    if subtitle.strip():
+        lines += [f"> {' '.join(subtitle.split())}", ""]
     for name in SECTION_FIELDS:
         lines += [f"## {SECTION_TITLES[name]}", "", (sections.get(name) or "").strip(), ""]
     lines += [f"## {REFERENCE_TITLE}", "", reference.strip(), ""]
@@ -155,15 +176,23 @@ class MarkdownFormatError(ValueError):
 
 
 def parse_body(body: str) -> tuple[str, dict[str, str], str, str | None, list[str]]:
-    """Separa título, seções conhecidas, referência e link do corpo Markdown."""
+    """Separa título, subtítulo, seções conhecidas, referência e link do corpo Markdown.
+
+    O subtítulo é a citação (``> ...``) entre o título e a primeira seção e volta em
+    ``sections["subtitle"]``.
+    """
     headline = ""
     sections: dict[str, list[str]] = {}
     extra: list[str] = []
     current: str | None = None
+    subtitle: list[str] = []
     for line in body.replace("\r\n", "\n").split("\n"):
         if line.startswith("# ") and not headline:
             headline = line[2:].strip()
             current = None
+            continue
+        if headline and current is None and not sections and line.startswith(">"):
+            subtitle.append(line.lstrip(">").strip())
             continue
         if line.startswith("## "):
             title = line[3:].strip()
@@ -189,6 +218,10 @@ def parse_body(body: str) -> tuple[str, dict[str, str], str, str | None, list[st
         elif line.strip():
             reference_lines.append(line.strip())
     known = {k: v for k, v in joined.items() if not k.startswith("__extra__")}
+    if is_legacy(known) and "why_it_matters" in known:
+        known["ufabc_relevance"] = known.pop("why_it_matters")
+    if subtitle and not known.get("subtitle"):
+        known["subtitle"] = " ".join(part for part in subtitle if part)
     return headline, known, " ".join(reference_lines), link, extra
 
 

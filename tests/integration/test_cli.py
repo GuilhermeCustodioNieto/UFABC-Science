@@ -18,7 +18,7 @@ def test_init_db_succeeds_and_is_idempotent(
 ) -> None:
     assert main(["init-db", "--database-url", db_url]) == 0
     first = capsys.readouterr()
-    assert "editorias criadas: 5" in first.out
+    assert "editorias criadas: 9" in first.out
     assert (tmp_path / "db" / "test.db").is_file()
 
     assert main(["init-db", "--database-url", db_url]) == 0

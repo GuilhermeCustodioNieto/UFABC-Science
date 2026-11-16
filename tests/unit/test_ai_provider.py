@@ -25,7 +25,7 @@ SCHEMA = AIArticleDraft.model_json_schema()
 
 def _prompt(payload: dict) -> str:
     return ARTICLE_GENERATION_PROMPT.render(
-        tipo_estudo="x", orientacao_tipo="y", revisao="preprint", limites="z",
+        orientacao_tipo="y", revisao="preprint", titulos="t", limites="z", revisao_anterior="",
         dados=untrusted_block(payload),
     )  # fmt: skip
 
@@ -43,8 +43,8 @@ def test_mock_works_offline_and_is_deterministic() -> None:
     second = MockProvider().generate_structured(_prompt(payload), SCHEMA)
     assert first.data == second.data
     draft = AIArticleDraft.model_validate(first.data)
-    assert "12%" in draft.findings
-    assert "preprint" in draft.introduction
+    assert "12%" in draft.discovery
+    assert "preprint" in draft.discovery
     assert first.provider == "mock"
 
 
@@ -54,7 +54,13 @@ def test_build_provider_defaults_to_mock_without_keys() -> None:
 
 def test_prompts_are_versioned_and_contain_mandatory_rules() -> None:
     names = {p.name for p in ALL_PROMPTS}
-    assert names == {"article_generation_prompt", "classification_prompt", "relevance_prompt"}
+    # Um prompt por etapa: curadoria, classificação, redação e revisão editorial.
+    assert names == {
+        "curation_prompt",
+        "classification_prompt",
+        "article_generation_prompt",
+        "editorial_review_prompt",
+    }
     for prompt in ALL_PROMPTS:
         assert prompt.version
         assert "Não invente" in prompt.system

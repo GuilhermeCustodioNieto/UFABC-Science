@@ -19,7 +19,7 @@ from ufabc_science.editorial.markdown import (
     SCHEMA_ID,
     ArticleDocument,
 )
-from ufabc_science.intelligence.schemas import SECTION_FIELDS, SECTION_TITLES
+from ufabc_science.intelligence.schemas import SUBTITLE_TITLE, is_legacy, section_layout
 from ufabc_science.intelligence.verification import (
     ContentUnderReview,
     VerificationReport,
@@ -77,7 +77,8 @@ def document_content(doc: ArticleDocument) -> ContentUnderReview:
     return ContentUnderReview(
         headline=doc.headline,
         original_title=str(doc.metadata.get("original_title") or ""),
-        sections={name: doc.sections.get(name, "") for name in SECTION_FIELDS},
+        sections={name: doc.sections.get(name, "") for name in section_layout(doc.sections)[0]},
+        subtitle=doc.sections.get("subtitle", ""),
         reference=doc.reference,
         source_url=str(doc.metadata.get("source_url") or doc.source_link or ""),
     )
@@ -168,7 +169,10 @@ def validate_document(
     # Estrutura do corpo.
     if not doc.headline:
         result.error("Título editorial (# ...) ausente.")
-    missing = [SECTION_TITLES[n] for n in SECTION_FIELDS if not doc.sections.get(n, "").strip()]
+    fields, titles = section_layout(doc.sections)
+    missing = [titles[n] for n in fields if not doc.sections.get(n, "").strip()]
+    if not is_legacy(doc.sections) and not doc.sections.get("subtitle", "").strip():
+        missing.insert(0, f"{SUBTITLE_TITLE} (linha '> ...' logo após o título)")
     if missing:
         result.error("Seções ausentes ou vazias: " + ", ".join(missing) + ".")
     if not doc.reference.strip():

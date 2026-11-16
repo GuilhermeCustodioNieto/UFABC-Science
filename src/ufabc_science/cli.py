@@ -286,10 +286,77 @@ def _cmd_score(args: argparse.Namespace, settings: Settings) -> int:
     engine, factory = open_database(settings)
     try:
         with session_scope(factory) as session:
-            summary = score_articles(session, article_ids=args.article_id, rescore=args.all)
+            summary = score_articles(
+                session,
+                article_ids=args.article_id,
+                rescore=args.all,
+                min_abstract_words=settings.min_abstract_words,
+            )
     finally:
         engine.dispose()
     print(f"Relevância: avaliados={summary.assessed} já_avaliados={summary.skipped}")
+    return EXIT_OK
+
+
+def _cmd_curate(args: argparse.Namespace, settings: Settings) -> int:
+    from ufabc_science.intelligence.provider import build_provider
+    from ufabc_science.processing.curation import curate_articles
+
+    provider = build_provider(settings)
+    if provider.name == "mock":
+        print(
+            "Curadoria por IA exige um provedor real (AI_PROVIDER). Sem IA, a seleção usa o "
+            "pré-filtro heurístico: veja 'python -m ufabc_science explain'."
+        )
+        return EXIT_ERROR
+    engine, factory = open_database(settings)
+    try:
+        with session_scope(factory) as session:
+            summary = curate_articles(
+                session,
+                provider,
+                limit=args.limit or settings.curation_limit,
+                max_age_days=settings.curation_max_age_days,
+                min_abstract_words=settings.min_abstract_words,
+                article_ids=args.article_id,
+            )
+    finally:
+        engine.dispose()
+    decisions = " ".join(f"{k}={v}" for k, v in sorted(summary.decisions.items()))
+    print(f"Curadoria: avaliados={summary.assessed} {decisions} erros={len(summary.errors)}")
+    for article_id, text in sorted(summary.explanations.items()):
+        print(f"\n[artigo {article_id}]\n{text}")
+    for error in summary.errors:
+        print(f"  erro: {error}")
+    return EXIT_ERROR if summary.errors and not summary.assessed else EXIT_OK
+
+
+def _cmd_explain(args: argparse.Namespace, settings: Settings) -> int:
+    from ufabc_science.domain.models import Article
+    from ufabc_science.processing.curation import effective_assessment, explain_record
+
+    engine, factory = open_database(settings)
+    try:
+        with factory() as session:
+            query = select(Article).order_by(Article.id)
+            if args.article_id:
+                query = query.where(Article.id.in_(args.article_id))
+            shown = 0
+            for article in session.scalars(query):
+                record = effective_assessment(article)
+                if record is None:
+                    continue
+                if args.decision and record.decision != args.decision:
+                    continue
+                print(f"[artigo {article.id}] {article.title[:100]}")
+                print(explain_record(record) + "\n")
+                shown += 1
+                if not args.article_id and shown >= args.limit:
+                    break
+            if not shown:
+                print("Nenhuma avaliação encontrada. Execute: python -m ufabc_science score")
+    finally:
+        engine.dispose()
     return EXIT_OK
 
 
@@ -299,7 +366,7 @@ def _cmd_shortlist(args: argparse.Namespace, settings: Settings) -> int:
     from ufabc_science.processing.relevance import (
         MAX_TYPICAL_ABSTRACT_WORDS,
         PriorityBands,
-        latest_assessment,
+        effective_assessment,
         unmoderated_repository,
     )
 
@@ -310,12 +377,14 @@ def _cmd_shortlist(args: argparse.Namespace, settings: Settings) -> int:
     try:
         with factory() as session:
             rows = []
+            assessment_of: dict[int, str | None] = {}
             for article in session.scalars(select(Article)):
-                assessment = latest_assessment(article)
+                assessment = effective_assessment(article)
                 if assessment is not None:
                     rows.append((assessment.final_score, article))
+                    assessment_of[article.id] = assessment.decision
             rows.sort(key=lambda r: r[0], reverse=True)
-            print(f"{'ID':>6}  {'NOTA':>6}  {'PRIORIDADE':<10} {'REVISÃO':<9} ALERTAS  TÍTULO")
+            print(f"{'ID':>6}  {'NOTA':>6}  {'DECISÃO':<10} {'REVISÃO':<9} ALERTAS  TÍTULO")
             for score, article in rows[: args.limit]:
                 flags = []
                 if article.possible_duplicate_of_id:
@@ -331,7 +400,8 @@ def _cmd_shortlist(args: argparse.Namespace, settings: Settings) -> int:
                     or "sem editoria"
                 )
                 print(
-                    f"{article.id:>6}  {score:6.2f}  {bands.classify(score).value:<10} "
+                    f"{article.id:>6}  {score:6.2f}  "
+                    f"{(assessment_of[article.id] or bands.classify(score).value):<10} "
                     f"{article.peer_review_status.value:<9} {' '.join(flags) or '-':<8} "
                     f"{article.title[:80]}\n{'':>36}{cats}"
                 )
@@ -363,6 +433,8 @@ def _cmd_generate(args: argparse.Namespace, settings: Settings) -> int:
             max_attempts=settings.ai_max_retries + 1,
             article_ids=args.article_id,
             force=args.force,
+            min_score=settings.curation_min_score,
+            review_rounds=settings.editorial_review_rounds,
         )
     finally:
         engine.dispose()
@@ -742,12 +814,12 @@ def _cmd_autopublish(args: argparse.Namespace, settings: Settings) -> int:
 
 
 def _steps(value: str) -> tuple[str, ...]:
-    from ufabc_science.pipeline.runner import ALL_STEPS
+    from ufabc_science.pipeline.runner import ALL_STEPS, PROCESS_STEPS
 
     if value in ("all", "full", "completo"):
         return ALL_STEPS
     if value in ("process", "processamento"):
-        return ("classify", "score", "generate")
+        return PROCESS_STEPS
     steps = tuple(s.strip() for s in value.split(",") if s.strip())
     unknown = sorted(set(steps) - set(ALL_STEPS))
     if unknown or not steps:
@@ -786,7 +858,9 @@ def _cmd_run(args: argparse.Namespace, settings: Settings) -> int:
 
 
 def _cmd_process(args: argparse.Namespace, settings: Settings) -> int:
-    return _run(settings, args, ("classify", "score", "generate"))
+    from ufabc_science.pipeline.runner import PROCESS_STEPS
+
+    return _run(settings, args, PROCESS_STEPS)
 
 
 def _cmd_runs(args: argparse.Namespace, settings: Settings) -> int:
@@ -864,6 +938,20 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--article-id", type=_ids)
     p.add_argument("--all", action="store_true", help="Reavalia todos (preserva histórico).")
     p.set_defaults(handler=_cmd_score)
+
+    p = sub.add_parser(
+        "curate",
+        help="Curadoria por IA: descoberta central, editorias, notas e decisão justificada.",
+    )
+    p.add_argument("--limit", type=int, help="Máximo de artigos avaliados (CURATION_LIMIT).")
+    p.add_argument("--article-id", type=_ids, help="Avalia os artigos informados.")
+    p.set_defaults(handler=_cmd_curate)
+
+    p = sub.add_parser("explain", help="Explica por que cada artigo foi aprovado ou rejeitado.")
+    p.add_argument("--article-id", type=_ids)
+    p.add_argument("--decision", choices=["priority", "publish", "consider", "reject"])
+    p.add_argument("--limit", type=int, default=20)
+    p.set_defaults(handler=_cmd_explain)
 
     p = sub.add_parser("shortlist", help="Lista os artigos prioritários.")
     p.add_argument("--limit", type=int, default=20)

@@ -247,7 +247,8 @@ class BaseCollector(ABC):
         result = CollectionResult(source=self.name)
         queries = [query] if query else list(self.default_queries)
         seen: set[str] = set()
-        per_query = max(1, self.config.max_articles // max(1, len(queries)))
+        # Arredonda para cima: com orçamento pequeno, cada consulta ainda traz mais de um.
+        per_query = max(1, -(-self.config.max_articles // max(1, len(queries))))
         with self._client() as client:
             for item in queries:
                 remaining = self.config.max_articles - len(result.articles)

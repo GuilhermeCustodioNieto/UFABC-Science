@@ -18,7 +18,13 @@ from typing import Any
 
 from ufabc_science.domain.enums import ArticleType, PeerReviewStatus, VerificationStatus
 from ufabc_science.domain.models import Article
-from ufabc_science.intelligence.schemas import DEFAULT_WORD_LIMITS, SECTION_FIELDS, SECTION_TITLES
+from ufabc_science.intelligence.schemas import (
+    DEFAULT_WORD_LIMITS,
+    MAX_HEADLINE_CHARS,
+    SUBTITLE_TITLE,
+    is_legacy,
+    section_layout,
+)
 from ufabc_science.processing.normalization import (
     doi_url,
     is_http_url,
@@ -73,6 +79,47 @@ _NOT_AVAILABLE = re.compile(r"nao (?:foram|foi|estao|esta) (?:informad|disponive
 _PEER_REVIEW_CLAIM = re.compile(r"revisad[oa]s? por pares|revisao por pares")
 _NEGATION = re.compile(r"\b(nao|ainda nao|sem|antes da)\b")
 
+# Fórmulas típicas de texto gerado ou acadêmico que a política editorial proíbe.
+CLICHES = (
+    r"neste artigo",
+    r"imagine que",
+    r"voce ja se perguntou",
+    r"no mundo atual",
+    r"na busca incessante",
+    r"em um avanco significativo",
+    r"pesquisadores tem se dedicado",
+    r"e importante ressaltar",
+    r"vale (?:destacar|ressaltar)",
+    r"\bem suma\b",
+    r"\bem resumo\b",
+    r"\bdesvend",
+    r"abre caminho",
+    r"um passo importante",
+)
+# Resultado de laboratório ou em animais apresentado como tratamento disponível.
+MATURITY_OVERCLAIM = (
+    r"ja (?:esta|estao) disponive",
+    r"ja pode(?:m)? ser usad",
+    r"pode(?:m)? ser usad[oa]s? (?:em|por) pacientes",
+    r"tratamento eficaz",
+    r"(?:eficacia|seguranca) comprovada",
+    r"cura (?:para|da|do)\b",
+    r"novo tratamento para",
+)
+_ANIMAL_STUDY = re.compile(r"\bmice\b|\bmouse\b|\brats?\b|murine|zebrafish|primates?\b|in vivo")
+_ANIMAL_MENTION = re.compile(r"camundong|\bratos?\b|animais|animal|peixe-zebra|primatas|murino")
+_LAB_STUDY = re.compile(r"in vitro|cell lines?|organoid")
+_LAB_MENTION = re.compile(
+    r"laboratorio|celulas|in vitro|organoide|cultura|tecido|ainda nao (?:foi )?testad"
+)
+MAX_AVG_SENTENCE_WORDS = 30
+MAX_SENTENCE_WORDS = 50
+# Frases sobre a publicação (não sobre o resultado) não entram na checagem de afirmações.
+_META_SENTENCE = re.compile(
+    r"preprint|revis(?:ao|ad[oa]s?) por pares|foi (?:registrad|publicad)|periodico|"
+    r"rascunho|editor"
+)
+
 
 @dataclass
 class Check:
@@ -122,6 +169,9 @@ class ContentUnderReview:
     reference: str
     source_url: str
     uncertainty_notes: tuple[str, ...] = ()
+    subtitle: str = ""
+    # Resultado da revisão editorial por IA (``None`` em textos editados à mão).
+    editorial_review: dict[str, Any] | None = None
 
 
 def _plain(text: str) -> str:
@@ -218,7 +268,9 @@ def verify_content(
     def add(code: str, status: VerificationStatus, message: str, details: list[str] | None = None):
         checks.append(Check(code, status, message, details or []))
 
-    body = " ".join([content.headline, *content.sections.values()])
+    fields, titles = section_layout(content.sections)
+    legacy = is_legacy(content.sections)
+    body = " ".join([content.headline, content.subtitle, *content.sections.values()])
     plain_body = _plain(body)
 
     # 1. Informação de origem suficiente.
@@ -260,7 +312,9 @@ def verify_content(
         add("headline_missing", fail, "Título editorial ausente.")
 
     # 3. Seções obrigatórias.
-    empty = [SECTION_TITLES[name] for name in SECTION_FIELDS if not content.sections.get(name)]
+    empty = [titles[name] for name in fields if not content.sections.get(name)]
+    if not legacy and not content.subtitle.strip():
+        empty.insert(0, SUBTITLE_TITLE)
     if empty:
         add("sections_missing", fail, "Seções obrigatórias vazias.", empty)
 
@@ -330,7 +384,8 @@ def verify_content(
     # 8. Números e estatísticas sem correspondência na fonte.
     allowed_numbers = _source_numbers(article)
     unmatched = []
-    for match in _NUMBER.findall(" ".join(content.sections.values()) + " " + content.headline):
+    numbered = " ".join([*content.sections.values(), content.headline, content.subtitle])
+    for match in _NUMBER.findall(numbered):
         if not (_number_variants(match) & allowed_numbers):
             unmatched.append(match.strip())
     if unmatched:
@@ -346,8 +401,13 @@ def verify_content(
     # 9. Afirmações dos resultados vinculadas a evidências da fonte.
     source_tokens = _anchor_tokens(f"{article.title} {article.abstract or ''}")
     claims: list[Claim] = []
-    for sentence in _SENTENCE.split(content.sections.get("findings", "")):
-        if len(sentence.split()) < 4:
+    findings = (
+        content.sections.get("findings", "")
+        if legacy
+        else " ".join([content.sections.get("discovery", ""), content.subtitle])
+    )
+    for sentence in _SENTENCE.split(findings):
+        if len(sentence.split()) < 4 or _META_SENTENCE.search(_plain(sentence)):
             continue
         evidence = sorted(_anchor_tokens(sentence) & source_tokens)[:6]
         numbers = [n for n in _NUMBER.findall(sentence) if _number_variants(n) & allowed_numbers]
@@ -405,17 +465,81 @@ def verify_content(
     # 13. Extensão (referência configurável). Texto curto não gera aviso: a especificação
     # proíbe aumentar artificialmente o texto quando a fonte tem pouca informação.
     too_long = []
-    for name in SECTION_FIELDS:
+    sized = {name: content.sections.get(name) for name in fields}
+    if not legacy:
+        sized["subtitle"] = content.subtitle
+    for name, text in sized.items():
         _, high = limits.get(name, (0, 10_000))
-        words = word_count(content.sections.get(name))
+        words = word_count(text)
         if words > high * LENGTH_TOLERANCE:
-            too_long.append(f"{SECTION_TITLES[name]}: {words} palavras (ref. até {high})")
+            label = titles.get(name, SUBTITLE_TITLE)
+            too_long.append(f"{label}: {words} palavras (ref. até {high})")
     total = sum(word_count(t) for t in content.sections.values())
     _, high = limits.get("total", (0, 10_000))
     if total > high * LENGTH_TOLERANCE:
         too_long.append(f"Total: {total} palavras (ref. até {high})")
     if too_long:
         add("length", warn, "Texto mais longo que a referência configurada.", too_long)
+
+    # 15. Estilo editorial: clichês, travessões, título e frases longas demais.
+    if not legacy:
+        style = [p.replace("\\b", "") for p in CLICHES if re.search(p, plain_body)]
+        if "—" in body:
+            style.append("travessão (—)")
+        if style:
+            add("style", warn, "Fórmulas proibidas pela política editorial (reescrever).", style)
+        headline_issues = []
+        if len(content.headline) > MAX_HEADLINE_CHARS:
+            headline_issues.append(f"{len(content.headline)} caracteres")
+        if content.headline.rstrip().endswith("?"):
+            headline_issues.append("título em forma de pergunta")
+        if ":" in content.headline:
+            headline_issues.append("título com dois-pontos (estilo acadêmico)")
+        if headline_issues:
+            add("headline_style", warn, "Título fora do padrão editorial.", headline_issues)
+        sentences = [s for s in _SENTENCE.split(" ".join(content.sections.values())) if s.strip()]
+        if sentences:
+            lengths = [len(s.split()) for s in sentences]
+            average = sum(lengths) / len(lengths)
+            if average > MAX_AVG_SENTENCE_WORDS or max(lengths) > MAX_SENTENCE_WORDS:
+                add(
+                    "readability",
+                    warn,
+                    f"Frases longas demais (média de {average:.0f} e máximo de {max(lengths)} "
+                    "palavras): simplificar.",
+                )
+
+    # 16. Maturidade científica: laboratório e animais não são tratamento disponível.
+    overclaim = [p for p in MATURITY_OVERCLAIM if re.search(p, plain_body)]
+    if overclaim:
+        add(
+            "maturity_overclaim",
+            warn,
+            "O texto pode apresentar resultado preliminar como tratamento ou eficácia comprovada.",
+            [p.replace("\\b", "") for p in overclaim],
+        )
+    source_text = _plain(f"{article.title} {article.abstract or ''}")
+    if not legacy:
+        if _ANIMAL_STUDY.search(source_text) and not _ANIMAL_MENTION.search(plain_body):
+            add("maturity_unstated", warn, "Estudo em animais, mas o texto não diz isso ao leitor.")
+        elif _LAB_STUDY.search(source_text) and not _LAB_MENTION.search(plain_body):
+            add(
+                "maturity_unstated",
+                warn,
+                "Experimento de laboratório, mas o texto não diz isso ao leitor.",
+            )
+
+    # 17. Revisão editorial por IA (linguagem e fidelidade).
+    review = content.editorial_review
+    if review and not review.get("skipped") and not review.get("approved"):
+        rounds = review.get("rounds") or []
+        problems = list((rounds[-1] if rounds else {}).get("problems") or [])
+        add(
+            "editorial_review",
+            warn,
+            "A revisão editorial não aprovou o texto após as reescritas.",
+            problems[:8],
+        )
 
     # 14. Pontos de incerteza informados pelo gerador.
     if content.uncertainty_notes:

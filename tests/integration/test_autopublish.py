@@ -37,7 +37,16 @@ class CleanProvider(MockProvider):
     @staticmethod
     def _draft(payload: dict[str, Any]) -> dict[str, Any]:
         draft = MockProvider._draft(payload)
-        draft["headline"] = draft["headline"].replace("[Rascunho mock] ", "")
+        # Título e frases curtas, como pede a política editorial (o mock copia o abstract).
+        draft["headline"] = draft["headline"].replace("[Rascunho mock] ", "").replace(":", ",")
+        note = "Trata-se de um preprint, ainda não revisado por pares; os resultados podem mudar."
+        for name in ("discovery", "how_it_works", "why_it_matters", "limitations"):
+            words = draft[name].replace(note, "").split()[:110]
+            draft[name] = " ".join(
+                " ".join(words[i : i + 16]).rstrip(".") + "." for i in range(0, len(words), 16)
+            )
+        if payload.get("revisao_por_pares") == "preprint":
+            draft["limitations"] += " " + note
         draft["uncertainty_notes"] = []
         return draft
 
@@ -56,7 +65,13 @@ def prepare(ws: Workspace, fake_apis: FakeApis, provider: AIProvider) -> None:
         classify_articles(session, rules=load_rules(), min_confidence=0.35, uncertain_below=0.5)
         score_articles(session, today=MONDAY)
     generate_contents(
-        ws.factory, provider, editorial_dir=ws.editorial, limit=10, min_abstract_words=40
+        ws.factory,
+        provider,
+        editorial_dir=ws.editorial,
+        limit=10,
+        min_abstract_words=40,
+        min_score=0,  # a curadoria tem testes próprios (tests/unit/test_curation.py)
+        require_ai_curation=False,
     )
 
 
@@ -147,7 +162,7 @@ def test_manually_edited_draft_waits_for_human(llm_drafts: Workspace) -> None:
     name = f"article-{passed[0]}.md"
     target = next(p for p in find_article_files(ws.editorial) if p.name == name)
     text = target.read_text(encoding="utf-8")
-    edited = text.replace("## Introdução\n\n", "## Introdução\n\nTexto editado. ", 1)
+    edited = text.replace("## A descoberta\n\n", "## A descoberta\n\nTexto editado. ", 1)
     assert edited != text
     target.write_text(edited, encoding="utf-8")
 

@@ -17,6 +17,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import math
 import re
 from dataclasses import dataclass, field
 from enum import Enum
@@ -55,13 +56,20 @@ from ufabc_science.intelligence.exceptions import (
 )
 from ufabc_science.intelligence.prompts import (
     ARTICLE_GENERATION_PROMPT,
-    STUDY_TYPE_GUIDANCE,
+    EDITORIAL_REVIEW_PROMPT,
+    EVIDENCE_GUIDANCE,
+    HEADLINE_RULES,
     untrusted_block,
 )
 from ufabc_science.intelligence.schemas import (
+    APPEAL_CRITERIA,
     DEFAULT_WORD_LIMITS,
+    LANGUAGE_CRITERIA,
+    PRECISION_CRITERIA,
     SECTION_FIELDS,
+    SECTION_TITLES,
     AIArticleDraft,
+    AIEditorialReview,
     GeneratedArticleContent,
 )
 from ufabc_science.intelligence.verification import (
@@ -71,8 +79,17 @@ from ufabc_science.intelligence.verification import (
     source_url_for,
     verify_content,
 )
+from ufabc_science.processing.classification import primary_category
+from ufabc_science.processing.curation import (
+    CONSIDER_SCORE,
+    PRIORITY_SCORE,
+    REJECT,
+    effective_assessment,
+    explain_record,
+    infer_evidence_level,
+    is_ai_assessment,
+)
 from ufabc_science.processing.normalization import strip_accents, word_count
-from ufabc_science.processing.relevance import latest_assessment
 
 logger = logging.getLogger(__name__)
 
@@ -106,10 +123,22 @@ def infer_study_type(article: Article) -> str:
 # --- Entrada e hash ---------------------------------------------------------------------
 
 
+def curation_hints(article: Article) -> dict[str, Any] | None:
+    """Descoberta central, nível de evidência e conexões vindos da curadoria por IA."""
+    record = effective_assessment(article)
+    if record is None or not is_ai_assessment(record):
+        return None
+    return {
+        "descoberta_central": record.central_discovery,
+        "nivel_de_evidencia": record.evidence_level,
+        "conexoes_entre_areas": (record.justification or {}).get("interdisciplinary_links"),
+    }
+
+
 def generation_payload(article: Article) -> dict[str, Any]:
     """Dados (e somente eles) enviados ao modelo."""
     categories = sorted(link.category.slug for link in article.categories)
-    return {
+    payload = {
         "titulo_original": article.title,
         "abstract": article.abstract,
         "autores": [a.get("name") for a in article.authors or [] if a.get("name")][:20],
@@ -123,6 +152,10 @@ def generation_payload(article: Article) -> dict[str, Any]:
         "categorias": categories,
         "palavras_chave": list(article.keywords or [])[:25],
     }
+    hints = curation_hints(article)
+    if hints:
+        payload["curadoria"] = hints
+    return payload
 
 
 def compute_input_hash(payload: dict[str, Any], limits: dict[str, tuple[int, int]]) -> str:
@@ -130,6 +163,7 @@ def compute_input_hash(payload: dict[str, Any], limits: dict[str, tuple[int, int
         {
             "payload": payload,
             "prompt": ARTICLE_GENERATION_PROMPT.identifier,
+            "review": EDITORIAL_REVIEW_PROMPT.identifier,
             "limits": {k: list(v) for k, v in sorted(limits.items())},
         },
         ensure_ascii=False,
@@ -147,6 +181,7 @@ class Candidate:
     article: Article
     score: float | None
     input_hash: str
+    primary: str | None = None
 
 
 @dataclass
@@ -166,6 +201,32 @@ def latest_content(article: Article) -> GeneratedContent | None:
     return article.generated_contents[-1] if article.generated_contents else None
 
 
+def _diverse(candidates: list[Candidate], limit: int) -> tuple[list[Candidate], list[Candidate]]:
+    """Evita que uma editoria domine a edição sem forçar distribuição artificial.
+
+    Nenhuma editoria passa de metade das vagas, exceto com descoberta de prioridade máxima
+    (nota 85+). Vagas que sobrarem são preenchidas pela ordem de nota, sem cota.
+    """
+    cap = max(2, math.ceil(limit / 2))
+    chosen: list[Candidate] = []
+    held: list[Candidate] = []
+    per_section: dict[str | None, int] = {}
+    for candidate in candidates:
+        if len(chosen) >= limit:
+            held.append(candidate)
+            continue
+        count = per_section.get(candidate.primary, 0)
+        if count >= cap and (candidate.score or 0) < PRIORITY_SCORE:
+            held.append(candidate)
+            continue
+        per_section[candidate.primary] = count + 1
+        chosen.append(candidate)
+    while len(chosen) < limit and held:
+        chosen.append(held.pop(0))
+    chosen.sort(key=lambda c: c.score or 0.0, reverse=True)
+    return chosen, held
+
+
 def select_for_generation(
     session: Session,
     *,
@@ -174,8 +235,16 @@ def select_for_generation(
     word_limits: dict[str, tuple[int, int]],
     article_ids: list[int] | None = None,
     force: bool = False,
+    min_score: float = CONSIDER_SCORE,
+    require_ai_curation: bool = False,
 ) -> SelectionResult:
-    """Escolhe artigos para geração, priorizando maior relevância editorial."""
+    """Escolhe as melhores descobertas para redação.
+
+    Só entram artigos que a curadoria não rejeitou e com nota final >= ``min_score``
+    (padrão 65). Com IA configurada (``require_ai_curation``), só artigos já avaliados pela
+    curadoria por IA. Pertencer a uma editoria nunca basta. ``article_ids`` com ``force``
+    ignora o corte (decisão explícita do editor).
+    """
     result = SelectionResult()
     query = select(Article).order_by(Article.id)
     if article_ids:
@@ -199,6 +268,26 @@ def select_for_generation(
         if review is not None and review.status is EditorialStatus.APPROVED and not force:
             result.skip("ja_aprovado", article.id)
             continue
+        assessment = effective_assessment(article)
+        explicit = bool(article_ids) and force
+        if not explicit:
+            if assessment is None or assessment.decision is None:
+                result.skip("sem_avaliacao_editorial", article.id)
+                continue
+            if require_ai_curation and not is_ai_assessment(assessment):
+                result.skip("aguardando_curadoria", article.id)
+                continue
+            # Rejeição por regra (atualização menor, opinião, área sem editoria...) vale
+            # sempre; nota baixa é tratada pelo corte ``min_score``.
+            rejected_by_rule = bool(assessment.rejection_flags) or (
+                assessment.decision == REJECT and assessment.final_score >= CONSIDER_SCORE
+            )
+            if rejected_by_rule:
+                result.skip("rejeitado_pela_curadoria", article.id)
+                continue
+            if assessment.final_score < min_score:
+                result.skip("abaixo_do_corte_editorial", article.id)
+                continue
         input_hash = compute_input_hash(generation_payload(article), word_limits)
         content = latest_content(article)
         if content is not None and content.input_hash == input_hash and not force:
@@ -207,9 +296,13 @@ def select_for_generation(
             else:
                 result.skip("sem_alteracoes", article.id)
             continue
-        assessment = latest_assessment(article)
         candidates.append(
-            Candidate(article, assessment.final_score if assessment else None, input_hash)
+            Candidate(
+                article,
+                assessment.final_score if assessment else None,
+                input_hash,
+                primary_category(list(article.categories)),
+            )
         )
     candidates.sort(
         key=lambda c: (
@@ -219,29 +312,48 @@ def select_for_generation(
         ),
         reverse=True,
     )
-    result.selected = candidates[:limit]
-    for extra in candidates[limit:]:
-        result.skip("limite_de_processamento", extra.article.id)
+    result.selected, extra = _diverse(candidates, limit)
+    for candidate in extra:
+        result.skip("limite_de_processamento", candidate.article.id)
     return result
 
 
-# --- Geração ----------------------------------------------------------------------------
+# --- Redação ----------------------------------------------------------------------------
 
 
 def _limits_text(limits: dict[str, tuple[int, int]]) -> str:
     return ", ".join(f"{name}: {low}-{high}" for name, (low, high) in limits.items())
 
 
+def evidence_guidance(article: Article) -> str:
+    record = effective_assessment(article)
+    level = (record.evidence_level if record else None) or infer_evidence_level(article)
+    return EVIDENCE_GUIDANCE.get(level, EVIDENCE_GUIDANCE["outro"])
+
+
 def request_draft(
-    provider: AIProvider, article: Article, limits: dict[str, tuple[int, int]], max_attempts: int
+    provider: AIProvider,
+    article: Article,
+    limits: dict[str, tuple[int, int]],
+    max_attempts: int,
+    *,
+    feedback: str = "",
 ) -> tuple[AIArticleDraft, dict[str, Any], str | None]:
-    """Pede o rascunho ao provedor; repete (limitado) se a resposta for inválida."""
-    study_type = infer_study_type(article)
+    """Pede a matéria ao provedor; repete (limitado) se a resposta for inválida.
+
+    ``feedback`` traz as instruções da revisão editorial quando se pede uma nova versão.
+    """
     prompt = ARTICLE_GENERATION_PROMPT.render(
-        tipo_estudo=study_type,
-        orientacao_tipo=STUDY_TYPE_GUIDANCE.get(study_type, STUDY_TYPE_GUIDANCE["unknown"]),
+        orientacao_tipo=evidence_guidance(article),
         revisao=article.peer_review_status.value,
+        titulos=HEADLINE_RULES,
         limites=_limits_text(limits),
+        revisao_anterior=(
+            "\nA versão anterior foi devolvida pela revisão editorial. Reescreva a matéria "
+            "inteira corrigindo estes pontos:\n" + feedback[:2500] + "\n"
+            if feedback
+            else ""
+        ),
         dados=untrusted_block(generation_payload(article)),
     )
     schema = AIArticleDraft.model_json_schema()
@@ -258,9 +370,7 @@ def request_draft(
         response = provider.generate_structured(
             attempt_prompt, schema, system=ARTICLE_GENERATION_PROMPT.system
         )
-        for key, value in response.usage.items():
-            if isinstance(value, (int, float)):
-                usage[key] = usage.get(key, 0) + value
+        _add_usage(usage, response.usage)
         usage["attempts"] = attempt
         try:
             return AIArticleDraft.model_validate(response.data), usage, response.model
@@ -281,8 +391,92 @@ def request_draft(
     )
 
 
+def _add_usage(total: dict[str, Any], usage: dict[str, Any]) -> None:
+    for key, value in usage.items():
+        if isinstance(value, (int, float)):
+            total[key] = total.get(key, 0) + value
+
+
+# --- Revisão editorial ------------------------------------------------------------------
+
+MIN_REVIEW_SCORE = 7
+
+
+def _draft_text(draft: AIArticleDraft) -> str:
+    return "\n\n".join(
+        [
+            f"# {draft.headline}",
+            f"> {draft.subtitle}",
+            *[f"## {SECTION_TITLES[name]}\n\n{getattr(draft, name)}" for name in SECTION_FIELDS],
+        ]
+    )
+
+
+def review_draft(
+    provider: AIProvider, article: Article, draft: AIArticleDraft, max_attempts: int = 2
+) -> tuple[AIEditorialReview | None, dict[str, Any]]:
+    """Revisão de linguagem e de fidelidade. ``None`` se a resposta for inválida."""
+    payload = generation_payload(article)
+    payload.pop("curadoria", None)
+    prompt = EDITORIAL_REVIEW_PROMPT.render(
+        materia=untrusted_block({"materia": _draft_text(draft)}),
+        dados=untrusted_block(payload),
+    )
+    usage: dict[str, Any] = {}
+    schema = AIEditorialReview.model_json_schema()
+    for _ in range(max_attempts):
+        response = provider.generate_structured(
+            prompt, schema, system=EDITORIAL_REVIEW_PROMPT.system
+        )
+        _add_usage(usage, response.usage)
+        try:
+            return AIEditorialReview.model_validate(response.data), usage
+        except ValidationError as exc:
+            logger.warning("Artigo %s: revisão editorial inválida: %s", article.id, exc)
+    return None, usage
+
+
+def assess_review(review: AIEditorialReview) -> tuple[bool, list[str], str]:
+    """Aprovação da revisão e, se reprovada, o tipo de correção e as instruções."""
+    scores = review.scores()
+    low = {name for name, value in scores.items() if value < MIN_REVIEW_SCORE}
+    if not low:
+        return True, [], ""
+    kinds = []
+    lines = []
+    if low & set(LANGUAGE_CRITERIA):
+        kinds.append("simplificar")
+        lines.append(
+            "O texto está técnico ou pouco natural: reescreva de forma mais simples e direta, "
+            "explicando os termos e cortando o jargão, sem perder precisão."
+        )
+    if low & set(PRECISION_CRITERIA):
+        kinds.append("precisao")
+        lines.append(
+            "Há problemas de precisão ou fidelidade: corrija o que não está no estudo, "
+            "deixe clara a diferença entre fato e hipótese e a maturidade do resultado."
+        )
+    if low & set(APPEAL_CRITERIA):
+        kinds.append("interesse")
+        lines.append(
+            "O título ou a abertura não despertam interesse ou não batem com o texto: comece "
+            "pela descoberta e escreva um título concreto e fiel."
+        )
+    detail = [f"Notas abaixo de {MIN_REVIEW_SCORE}: " + ", ".join(sorted(low)) + "."]
+    detail += [f"- {p}" for p in review.problems]
+    if review.instructions:
+        detail.append(review.instructions)
+    return False, kinds, "\n".join(lines + detail)
+
+
 def complete_markdown(content: GeneratedArticleContent) -> str:
-    return render_body(content.headline, content.sections(), content.reference, content.source_url)
+    return render_body(
+        content.headline,
+        content.sections(),
+        content.reference,
+        content.source_url,
+        subtitle=content.subtitle,
+    )
 
 
 def generate_content(
@@ -293,13 +487,43 @@ def generate_content(
     limits: dict[str, tuple[int, int]],
     max_attempts: int,
     min_abstract_words: int,
+    review_rounds: int = 1,
 ) -> tuple[GeneratedContent, VerificationReport]:
-    """Gera, valida, verifica e persiste uma nova versão de conteúdo."""
+    """Redige, revisa (e reescreve, se preciso), verifica e persiste uma nova versão.
+
+    A primeira resposta do modelo não é aceita automaticamente: a revisão editorial avalia
+    linguagem e fidelidade e pode pedir até ``review_rounds`` novas versões. O resultado da
+    última revisão fica gravado; se ela reprovar, a verificação marca WARNING e a matéria
+    não é publicada automaticamente.
+    """
     article = candidate.article
     source_url = source_url_for(article)
     if source_url is None:
         raise InsufficientInformationError("Artigo sem link original verificável.")
     draft, usage, model_name = request_draft(provider, article, limits, max_attempts)
+    review_log: dict[str, Any] = {"prompt_version": EDITORIAL_REVIEW_PROMPT.version, "rounds": []}
+    if provider.name == "mock":
+        review_log["skipped"] = "provedor mock: sem revisão editorial"
+    else:
+        for round_number in range(review_rounds + 1):
+            review, review_usage = review_draft(provider, article, draft)
+            _add_usage(usage, review_usage)
+            if review is None:
+                review_log["approved"] = False
+                review_log["rounds"].append({"error": "revisão editorial inválida"})
+                break
+            approved, kinds, feedback = assess_review(review)
+            review_log["rounds"].append(
+                {"scores": review.scores(), "problems": review.problems, "rewrite": kinds}
+            )
+            review_log["approved"] = approved
+            if approved or round_number >= review_rounds:
+                break
+            logger.info("Artigo %s: revisão pediu nova versão (%s)", article.id, ", ".join(kinds))
+            draft, rewrite_usage, model_name = request_draft(
+                provider, article, limits, max_attempts, feedback=feedback
+            )
+            _add_usage(usage, rewrite_usage)
     content = GeneratedArticleContent(
         **draft.model_dump(),
         original_title=article.title,
@@ -315,6 +539,8 @@ def generate_content(
             reference=content.reference,
             source_url=content.source_url,
             uncertainty_notes=tuple(content.uncertainty_notes),
+            subtitle=content.subtitle,
+            editorial_review=review_log,
         ),
         min_abstract_words=min_abstract_words,
         word_limits=limits,
@@ -332,13 +558,11 @@ def generate_content(
         version=version,
         headline=content.headline,
         original_title=content.original_title,
-        introduction=content.introduction,
-        context=content.context,
-        research_question=content.research_question,
-        methodology=content.methodology,
-        findings=content.findings,
+        subtitle=content.subtitle,
+        discovery=content.discovery,
+        how_it_works=content.how_it_works,
+        why_it_matters=content.why_it_matters,
         limitations=content.limitations,
-        relevance=content.ufabc_relevance,
         complete_content=complete_markdown(content),
         reference=content.reference,
         source_url=content.source_url,
@@ -349,6 +573,7 @@ def generate_content(
         prompt_version=ARTICLE_GENERATION_PROMPT.version,
         input_hash=candidate.input_hash,
         usage=usage,
+        editorial_review=review_log,
         verification_status=report.status,
         verification_report=report.as_dict(),
         verified_at=utcnow(),
@@ -360,10 +585,8 @@ def generate_content(
 
 
 def content_under_review(record: GeneratedContent) -> ContentUnderReview:
-    return ContentUnderReview(
-        headline=record.headline or "",
-        original_title=record.original_title or "",
-        sections={
+    if record.discovery is None and record.how_it_works is None:
+        sections = {  # conteúdo da primeira versão
             "introduction": record.introduction or "",
             "context": record.context or "",
             "research_question": record.research_question or "",
@@ -371,10 +594,23 @@ def content_under_review(record: GeneratedContent) -> ContentUnderReview:
             "findings": record.findings or "",
             "limitations": record.limitations or "",
             "ufabc_relevance": record.relevance or "",
-        },
+        }
+    else:
+        sections = {
+            "discovery": record.discovery or "",
+            "how_it_works": record.how_it_works or "",
+            "why_it_matters": record.why_it_matters or "",
+            "limitations": record.limitations or "",
+        }
+    return ContentUnderReview(
+        headline=record.headline or "",
+        original_title=record.original_title or "",
+        sections=sections,
         reference=record.reference or "",
         source_url=record.source_url or "",
         uncertainty_notes=tuple(record.uncertainty_notes or ()),
+        subtitle=record.subtitle or "",
+        editorial_review=record.editorial_review,
     )
 
 
@@ -412,6 +648,23 @@ def _messages(report: dict[str, Any]) -> list[str]:
     ]
 
 
+def _curation_summary(article: Article) -> str | None:
+    record = effective_assessment(article)
+    return explain_record(record) if record is not None else None
+
+
+def _review_summary(review: dict[str, Any] | None) -> str | None:
+    if not review:
+        return None
+    if review.get("skipped"):
+        return str(review["skipped"])
+    rounds = review.get("rounds") or []
+    last = rounds[-1] if rounds else {}
+    status = "aprovada" if review.get("approved") else "REPROVADA (não publicar sem revisão)"
+    scores = ", ".join(f"{k}={v}" for k, v in (last.get("scores") or {}).items())
+    return f"{status} após {len(rounds)} rodada(s). {scores}".strip()
+
+
 def export_markdown(
     record: GeneratedContent, editorial_dir: Path, *, overwrite_edited: bool = False
 ) -> tuple[ExportOutcome, Path]:
@@ -424,9 +677,7 @@ def export_markdown(
     article = record.article
     name = article_filename(article.id)
     body = record.complete_content or ""
-    primary = None
-    if article.categories:
-        primary = max(article.categories, key=lambda link: link.confidence).category.slug
+    primary = primary_category(list(article.categories))
     metadata: dict[str, Any] = {
         "schema": SCHEMA_ID,
         "article_id": article.id,
@@ -448,6 +699,8 @@ def export_markdown(
         if record.verification_status
         else None,
         "verification_messages": _messages(record.verification_report or {}),
+        "curation": _curation_summary(article),
+        "editorial_review": _review_summary(record.editorial_review),
         "generated_body_hash": body_hash(body),
         "reviewer": None,
         "reviewed_at": None,
@@ -528,6 +781,9 @@ def generate_contents(
     max_attempts: int = 3,
     article_ids: list[int] | None = None,
     force: bool = False,
+    min_score: float = CONSIDER_SCORE,
+    require_ai_curation: bool | None = None,
+    review_rounds: int = 1,
 ) -> GenerationSummary:
     """Seleciona, gera, verifica e exporta rascunhos. Um artigo por transação."""
     limits = {**DEFAULT_WORD_LIMITS, **(word_limits or {})}
@@ -540,6 +796,10 @@ def generate_contents(
             word_limits=limits,
             article_ids=article_ids,
             force=force,
+            min_score=min_score,
+            require_ai_curation=(
+                provider.name != "mock" if require_ai_curation is None else require_ai_curation
+            ),
         )
         chosen = [(c.article.id, c.input_hash, c.score) for c in selection.selected]
         summary.skipped = selection.skipped
@@ -563,6 +823,7 @@ def generate_contents(
                     limits=limits,
                     max_attempts=max_attempts,
                     min_abstract_words=min_abstract_words,
+                    review_rounds=review_rounds,
                 )
                 _, path = export_markdown(record, editorial_dir, overwrite_edited=force)
                 summary.files.append(path.as_posix())

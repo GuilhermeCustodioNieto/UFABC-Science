@@ -278,6 +278,16 @@ class RelevanceAssessment(Base):
     # Uma justificativa por critério: {"scientific_relevance": "...", ...}
     justification: Mapped[dict[str, str]] = mapped_column(JSON, default=dict)
     method_version: Mapped[str] = mapped_column(String(50), default="heuristic-v1")
+    # Curadoria editorial (migração 0003). Pesos: curiosidade 30, relevância científica 25,
+    # novidade (= originality) 20, impacto (= potential_impact) 15, evidências 10.
+    curiosity: Mapped[int | None] = mapped_column(Integer)
+    evidence_quality: Mapped[int | None] = mapped_column(Integer)
+    # priority | publish | consider | reject (processing/curation.py).
+    decision: Mapped[str | None] = mapped_column(String(20), index=True)
+    decision_reasons: Mapped[list[str] | None] = mapped_column(JSON)
+    rejection_flags: Mapped[list[str] | None] = mapped_column(JSON)
+    central_discovery: Mapped[str | None] = mapped_column(Text)
+    evidence_level: Mapped[str | None] = mapped_column(String(40))
     assessed_at: Mapped[datetime] = mapped_column(UTCDateTime, default=utcnow, index=True)
 
     article: Mapped[Article] = relationship(back_populates="relevance_assessments")
@@ -304,6 +314,13 @@ class GeneratedContent(Base):
     findings: Mapped[str | None] = mapped_column(Text)
     limitations: Mapped[str | None] = mapped_column(Text)
     relevance: Mapped[str | None] = mapped_column(Text)
+    # Estrutura editorial atual (migração 0003). As colunas acima ficam para o histórico.
+    subtitle: Mapped[str | None] = mapped_column(Text)
+    discovery: Mapped[str | None] = mapped_column(Text)
+    how_it_works: Mapped[str | None] = mapped_column(Text)
+    why_it_matters: Mapped[str | None] = mapped_column(Text)
+    # Revisão editorial por IA (linguagem e fidelidade): notas, veredito e rodadas.
+    editorial_review: Mapped[dict[str, Any] | None] = mapped_column(JSON)
     complete_content: Mapped[str | None] = mapped_column(Text)
     # Referência e link são montados pelo sistema a partir dos metadados, nunca pela IA.
     reference: Mapped[str | None] = mapped_column(Text)

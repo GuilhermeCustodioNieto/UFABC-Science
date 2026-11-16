@@ -146,12 +146,17 @@ class OpenAlexCollector(BaseCollector):
     name = "openalex"
     base_url = "https://api.openalex.org"
     min_interval = 0.2  # bem abaixo do limite documentado de 10 req/s
+    # Buscas por tema das editorias (política editorial, seção 2). A curadoria decide
+    # depois o que é interessante; aqui o objetivo é cobrir as áreas.
     default_queries = (
-        "neuroscience",
         "artificial intelligence",
-        "engineering",
-        "molecular biology",
-        "physics",
+        "exoplanet OR black hole OR galaxy OR telescope",
+        "spacecraft OR rocket propulsion OR satellite",
+        "gene therapy OR vaccine OR drug discovery OR cancer treatment",
+        "neuroscience OR consciousness OR memory OR psychology",
+        "behavioral economics OR inequality OR labor market",
+        "philosophy OR sociology OR art OR creativity",
+        "interdisciplinary OR bioinformatics OR astrobiology",
     )
 
     def _collect_query(

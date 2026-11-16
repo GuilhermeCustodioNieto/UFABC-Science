@@ -130,7 +130,13 @@ class CrossrefCollector(BaseCollector):
     name = "crossref"
     base_url = "https://api.crossref.org"
     min_interval = 1.0  # o pool público responde 429 com intervalos menores
-    default_queries = ("engineering", "materials science", "robotics", "physics", "ecology")
+    default_queries = (
+        "aerospace propulsion spacecraft",
+        "astronomy astrophysics",
+        "economics behavioral",
+        "philosophy ethics technology",
+        "sociology collective behavior",
+    )
 
     def _params(self) -> dict[str, Any]:
         return {"mailto": self.config.contact_email} if self.config.contact_email else {}

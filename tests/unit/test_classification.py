@@ -31,7 +31,7 @@ def test_keyword_classification() -> None:
         ),
         RULES,
     )
-    assert result.slugs[0] == "neurociencia"
+    assert result.slugs[0] == "neurociencia-e-psicologia"
     assert 0 < result.assignments[0].confidence <= 1
     assert "neuron" in result.assignments[0].justification
 
@@ -45,7 +45,9 @@ def test_interdisciplinary_article_receives_multiple_categories() -> None:
         ),
         RULES,
     )
-    assert {"neurociencia", "computacao-e-tecnologia"} <= set(result.slugs)
+    assert {"neurociencia-e-psicologia", "computacao-e-ia"} <= set(result.slugs)
+    # Duas áreas com confiança: a pesquisa também entra em Intersecções Científicas.
+    assert "interseccoes-cientificas" in result.slugs
 
 
 def test_incidental_mention_is_not_enough() -> None:
@@ -56,7 +58,7 @@ def test_incidental_mention_is_not_enough() -> None:
         ),
         RULES,
     )
-    assert "neurociencia" not in result.slugs
+    assert "neurociencia-e-psicologia" not in result.slugs
 
 
 def test_no_category_without_evidence() -> None:
@@ -66,7 +68,7 @@ def test_no_category_without_evidence() -> None:
 
 def test_source_categories_count_as_strong_evidence() -> None:
     result = classify_text(text("A short note", "", ("q-bio.NC",)), RULES)
-    assert result.slugs == ["neurociencia"]
+    assert result.slugs == ["neurociencia-e-psicologia"]
 
 
 def test_low_confidence_is_flagged_as_uncertain() -> None:
@@ -81,7 +83,7 @@ def test_portuguese_terms_and_accents() -> None:
     result = classify_text(
         text("Neurociência da memória", "Estudo sobre neurônios e sinapses."), RULES
     )
-    assert "neurociencia" in result.slugs
+    assert "neurociencia-e-psicologia" in result.slugs
 
 
 def test_rules_are_configurable() -> None:
@@ -129,7 +131,7 @@ def test_persistence_with_ai_for_ambiguous_cases(seeded_session: Session) -> Non
     provider = FakeProvider(
         {
             "categories": [
-                {"slug": "ciencias_stem", "confidence": 0.95, "justification": "física"},
+                {"slug": "outras_ciencias", "confidence": 0.95, "justification": "física"},
                 {"slug": "astrologia", "confidence": 0.9, "justification": "inexistente"},
             ]
         }
@@ -144,7 +146,7 @@ def test_persistence_with_ai_for_ambiguous_cases(seeded_session: Session) -> Non
     assert provider.calls == 1
     assert summary.ai_assisted == 1
     link = article.categories[0]
-    assert link.category.slug == "ciencias-e-stem"
+    assert link.category.slug == "outras-ciencias"
     assert link.classification_method is ClassificationMethod.AI_ASSISTED
     assert link.confidence <= 0.75  # teto para sugestões da IA
     assert link.is_uncertain
@@ -153,7 +155,7 @@ def test_persistence_with_ai_for_ambiguous_cases(seeded_session: Session) -> Non
 def test_reclassification_preserves_manual_categories(seeded_session: Session) -> None:
     session = seeded_session
     article = _article(session, "Cortical neurons and synaptic plasticity", "Neurons fire.")
-    bio = session.query(Category).filter_by(slug="ciencias-biologicas").one()
+    bio = session.query(Category).filter_by(slug="medicina-e-biotecnologia").one()
     session.add(
         ArticleCategory(
             article_id=article.id,
@@ -168,8 +170,8 @@ def test_reclassification_preserves_manual_categories(seeded_session: Session) -
     )
     session.expire(article, ["categories"])
     methods = {link.category.slug: link.classification_method for link in article.categories}
-    assert methods["ciencias-biologicas"] is ClassificationMethod.MANUAL
-    assert methods["neurociencia"] is ClassificationMethod.RULE_BASED
+    assert methods["medicina-e-biotecnologia"] is ClassificationMethod.MANUAL
+    assert methods["neurociencia-e-psicologia"] is ClassificationMethod.RULE_BASED
 
 
 def test_classification_is_idempotent(seeded_session: Session) -> None:
@@ -182,7 +184,7 @@ def test_classification_is_idempotent(seeded_session: Session) -> None:
 
 
 def test_weak_secondary_categories_are_dropped() -> None:
-    # Artigo de biologia que só menciona IA de passagem não vira "Computação".
+    # Artigo de medicina que só menciona IA de passagem não vira "Computação".
     result = classify_text(
         text(
             "Gene therapy for genetic epilepsy",
@@ -192,7 +194,7 @@ def test_weak_secondary_categories_are_dropped() -> None:
         ),
         RULES,
     )
-    assert result.slugs == ["ciencias-biologicas"]
+    assert result.slugs == ["medicina-e-biotecnologia"]
 
 
 def test_maximum_number_of_categories() -> None:
@@ -215,9 +217,58 @@ def test_new_rules_version_reclassifies_automatically(seeded_session: Session) -
     article = _article(session, "Cortical neurons and synaptic plasticity", "Neurons fire.")
     classify_articles(session, rules=RULES, min_confidence=0.35, uncertain_below=0.5)
     newer = parse_rules(
-        {"version": "rules-v99", "categories": {"neurociencia": {"strong": ["neuron*"]}}}
+        {
+            "version": "rules-v99",
+            "categories": {"neurociencia-e-psicologia": {"strong": ["neuron*"]}},
+        }
     )
     summary = classify_articles(session, rules=newer, min_confidence=0.35, uncertain_below=0.5)
     assert summary.processed == 1
     session.expire(article, ["categories"])
     assert article.categories[0].justification.startswith("Regras rules-v99:")
+
+
+def test_interdisciplinary_requires_two_confident_areas() -> None:
+    single = classify_text(
+        text(
+            "Exoplanet atmosphere observed by the James Webb telescope", "Spectroscopy of a planet."
+        ),
+        RULES,
+    )
+    assert "astronomia-e-universo" in single.slugs
+    assert "interseccoes-cientificas" not in single.slugs
+
+
+def test_new_editorias_are_recognized() -> None:
+    cases = {
+        "astronomia-e-universo": (
+            "Black hole merger detected",
+            "Gravitational waves from a galaxy.",
+        ),
+        "engenharia-aeroespacial": ("Rocket propulsion test", "A new thruster for spacecraft."),
+        "economia": ("Inequality and the labor market", "Wages and productivity across countries."),
+        "filosofia-sociologia-e-arte": (
+            "Creativity and aesthetics",
+            "Philosophy of art and culture.",
+        ),
+        "medicina-e-biotecnologia": (
+            "Gene therapy trial",
+            "A vaccine and immunotherapy for cancer.",
+        ),
+    }
+    for slug, (title, abstract) in cases.items():
+        assert slug in classify_text(text(title, abstract), RULES).slugs, slug
+
+
+def test_neighbouring_areas_are_not_interdisciplinary() -> None:
+    """Doença neurológica é medicina + neurociência, não uma pesquisa interdisciplinar."""
+    result = classify_text(
+        text(
+            "Gut microbiome aggravates Alzheimer's disease pathology",
+            "Glial cells and neurons in the hippocampus of patients; a new drug therapy target "
+            "for the treatment of neurodegenerative disease.",
+        ),
+        RULES,
+    )
+    assert {"medicina-e-biotecnologia", "neurociencia-e-psicologia"} <= set(result.slugs)
+    assert "interseccoes-cientificas" not in result.slugs

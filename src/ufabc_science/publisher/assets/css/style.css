@@ -24,6 +24,15 @@
   --c-engenharias: #e8590c;
   --c-ciencias-biologicas: #0f9d6b;
   --c-ciencias-e-stem: #d6336c;
+  --c-computacao-e-ia: #2f6bff;
+  --c-engenharia-aeroespacial: #e8590c;
+  --c-astronomia-e-universo: #5f3dc4;
+  --c-medicina-e-biotecnologia: #0f9d6b;
+  --c-neurociencia-e-psicologia: #c2255c;
+  --c-filosofia-sociologia-e-arte: #b8860b;
+  --c-economia: #1971c2;
+  --c-interseccoes-cientificas: #0b7285;
+  --c-outras-ciencias: #5c6b73;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -127,6 +136,15 @@ main { min-height: 60vh; }
 .cat-engenharias { --c: var(--c-engenharias); }
 .cat-ciencias-biologicas { --c: var(--c-ciencias-biologicas); }
 .cat-ciencias-e-stem { --c: var(--c-ciencias-e-stem); }
+.cat-computacao-e-ia { --c: var(--c-computacao-e-ia); }
+.cat-engenharia-aeroespacial { --c: var(--c-engenharia-aeroespacial); }
+.cat-astronomia-e-universo { --c: var(--c-astronomia-e-universo); }
+.cat-medicina-e-biotecnologia { --c: var(--c-medicina-e-biotecnologia); }
+.cat-neurociencia-e-psicologia { --c: var(--c-neurociencia-e-psicologia); }
+.cat-filosofia-sociologia-e-arte { --c: var(--c-filosofia-sociologia-e-arte); }
+.cat-economia { --c: var(--c-economia); }
+.cat-interseccoes-cientificas { --c: var(--c-interseccoes-cientificas); }
+.cat-outras-ciencias { --c: var(--c-outras-ciencias); }
 
 .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; list-style: none; margin: 0; padding: 0; }
 .chip { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.15rem 0.6rem; border-radius: 999px; background: var(--bg-soft); border: 1px solid var(--line); color: var(--ink-2); font-size: 0.75rem; line-height: 1.5; white-space: nowrap; }
@@ -182,6 +200,8 @@ button.chip:hover, button.chip[aria-pressed="true"] { background: var(--ink); co
 .story { max-width: var(--read); margin: 0 auto; padding: 3rem 1.5rem 2rem; }
 .story-subtitle { margin: 0 0 1.75rem; font-size: 1.25rem; line-height: 1.4; color: var(--muted); }
 .story-subtitle cite { font-style: normal; }
+.story-original { margin: -1rem 0 1.75rem; font-size: 0.875rem; color: var(--faint); }
+.story-original cite { font-style: italic; }
 .story-byline { display: flex; align-items: center; gap: 0.85rem; }
 .story-author { margin: 0; font-size: 0.95rem; font-weight: 500; }
 .story-meta { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0.1rem 0 0; font-size: 0.875rem; color: var(--muted); }

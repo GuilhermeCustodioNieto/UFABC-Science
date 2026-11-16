@@ -37,7 +37,7 @@ from ufabc_science.editorial.approval import latest_approval
 from ufabc_science.editorial.autopublish import is_automatic
 from ufabc_science.editorial.edition import category_names, get_edition, group_by_section
 from ufabc_science.editorial.markdown import parse_body, safe_child
-from ufabc_science.intelligence.schemas import SECTION_FIELDS, SECTION_TITLES
+from ufabc_science.intelligence.schemas import section_layout
 from ufabc_science.processing.normalization import doi_url, is_http_url, is_valid_doi
 
 logger = logging.getLogger(__name__)
@@ -84,6 +84,7 @@ class ArticleView:
     id: int
     headline: str
     original_title: str
+    subtitle: str
     sections: list[tuple[str, Markup]]
     reference: str
     source_url: str | None
@@ -189,11 +190,12 @@ def article_view(
     if review.status is not EditorialStatus.APPROVED or not review.content_snapshot:
         raise ValueError(f"Artigo {article.id} sem revisão aprovada.")
     headline, sections, reference, link, _ = parse_body(review.content_snapshot)
+    fields, titles = section_layout(sections)
     rendered = [
-        (SECTION_TITLES[name], render_markdown(sections.get(name)))
-        for name in SECTION_FIELDS
-        if sections.get(name)
+        (titles[name], render_markdown(sections.get(name))) for name in fields if sections.get(name)
     ]
+    subtitle = " ".join((sections.get("subtitle") or "").split())
+    lead = sections.get("introduction") or sections.get("discovery")
     doi = article.doi if article.doi and is_valid_doi(article.doi) else None
     authors = [a.get("name") for a in article.authors or [] if a.get("name")]
     categories = sorted(link_.category.slug for link_ in article.categories)
@@ -201,6 +203,7 @@ def article_view(
         id=article.id,
         headline=headline or article.title,
         original_title=article.title,
+        subtitle=subtitle,
         sections=rendered,
         reference=reference,
         source_url=safe_url(link),
@@ -214,7 +217,7 @@ def article_view(
         primary_category=section,
         primary_category_name=names.get(section, section),
         secondary_categories=[names.get(c, c) for c in categories if c != section],
-        summary=render_markdown(sections.get("introduction")),
+        summary=render_markdown(subtitle or lead),
         path=f"articles/article-{article.id}/index.html",
         reading_minutes=_reading_minutes(sections),
         lead_author=authors[0] if authors else None,

@@ -1,5 +1,7 @@
 """Pipeline automatizado (Etapa 5): coleta → enriquecimento → classificação →
-relevância → seleção/geração/verificação → exportação Markdown.
+pré-filtro heurístico → curadoria por IA (descoberta, editorias, notas e decisão) →
+seleção das melhores descobertas → redação → revisão editorial → verificação →
+exportação Markdown.
 
 A rotina **nunca** aprova, cria edição final ou publica. Cada execução é
 registrada em ``pipeline_runs`` e em ``data/runs/<run_id>.json``. Todas as
@@ -36,12 +38,13 @@ from ufabc_science.intelligence.generation import generate_contents
 from ufabc_science.intelligence.provider import build_provider
 from ufabc_science.pipeline.lock import PipelineLock
 from ufabc_science.processing.classification import classify_articles, load_rules
+from ufabc_science.processing.curation import REJECT, curate_articles
 from ufabc_science.processing.relevance import score_articles
 
 logger = logging.getLogger(__name__)
 
-ALL_STEPS = ("collect", "enrich", "classify", "score", "generate")
-PROCESS_STEPS = ("classify", "score", "generate")
+ALL_STEPS = ("collect", "enrich", "classify", "score", "curate", "generate")
+PROCESS_STEPS = ("classify", "score", "curate", "generate")
 
 
 @dataclass
@@ -102,6 +105,9 @@ class RunSummary:
             ("Artigos duplicados (já existentes)", s.get("articles_duplicate", 0)),
             ("Possíveis duplicatas sinalizadas", s.get("possible_duplicates", 0)),
             ("Artigos classificados", s.get("articles_classified", 0)),
+            ("Avaliados pela curadoria (IA)", s.get("curated", 0)),
+            ("Aprovados pela curadoria", s.get("curation_approved", 0)),
+            ("Rejeitados pela curadoria", s.get("curation_rejected", 0)),
             ("Artigos selecionados", s.get("articles_selected", 0)),
             ("Conteúdos gerados", s.get("contents_generated", 0)),
             ("Conteúdos com falha de verificação", s.get("verification_failed", 0)),
@@ -128,6 +134,13 @@ class RunSummary:
                 )
             ),
         ]
+        explanations = s.get("curation_explanations") or {}
+        if explanations:
+            lines += ["", "### Decisões da curadoria", ""]
+            for article_id, text in explanations.items():
+                first, *rest = text.split("\n")
+                lines.append(f"- **Artigo {article_id}** — {first}")
+                lines += [f"  - {line.strip()}" for line in rest[:3] if line.strip()]
         if self.errors:
             lines += ["", "### Erros", "", *[f"- {e}" for e in self.errors]]
         return "\n".join(lines) + "\n"
@@ -321,8 +334,35 @@ def _execute(
 
     def do_score() -> None:
         with session_scope(factory) as session:
-            summary = score_articles(session, today=today)
+            summary = score_articles(
+                session, today=today, min_abstract_words=settings.min_abstract_words
+            )
         stats["articles_scored"] = summary.assessed
+
+    def do_curate() -> None:
+        if ai.name == "mock":
+            messages.append(
+                "Curadoria por IA não executada (provedor mock): a seleção usa o pré-filtro "
+                "heurístico."
+            )
+            return
+        with session_scope(factory) as session:
+            summary = curate_articles(
+                session,
+                ai,
+                limit=settings.curation_limit,
+                max_age_days=settings.curation_max_age_days,
+                min_abstract_words=settings.min_abstract_words,
+                today=today,
+            )
+        stats["curated"] = summary.assessed
+        stats["curation_decisions"] = summary.decisions
+        stats["curation_rejected"] = summary.decisions.get(REJECT, 0)
+        stats["curation_approved"] = summary.assessed - stats["curation_rejected"]
+        stats["curation_explanations"] = {
+            str(k): v for k, v in sorted(summary.explanations.items())
+        }
+        errors.extend(summary.errors)
 
     def do_generate() -> None:
         summary = generate_contents(
@@ -333,6 +373,8 @@ def _execute(
             min_abstract_words=settings.min_abstract_words,
             word_limits=settings.generation_word_limits,
             max_attempts=settings.ai_max_retries + 1,
+            min_score=settings.curation_min_score,
+            review_rounds=settings.editorial_review_rounds,
         )
         stats["ai_provider"] = ai.name
         stats["articles_selected"] = summary.selected
@@ -354,6 +396,7 @@ def _execute(
         step("enrich", do_enrich)
         step("classify", do_classify)
         step("score", do_score)
+        step("curate", do_curate)
         step("generate", do_generate)
     except BaseException as exc:  # interrupcao (Ctrl+C, sinal): registra antes de propagar
         with session_scope(factory) as session:

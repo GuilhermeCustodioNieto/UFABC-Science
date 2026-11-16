@@ -164,9 +164,9 @@ def default_section(article: Article, editorial_dir: Path) -> str | None:
                 return canonical_category(str(primary))
         except Exception:
             pass
-    if article.categories:
-        return max(article.categories, key=lambda link: link.confidence).category.slug
-    return None
+    from ufabc_science.processing.classification import primary_category
+
+    return primary_category(list(article.categories))
 
 
 def _renumber(edition: NewsletterEdition, ordered: list[NewsletterItem]) -> None:

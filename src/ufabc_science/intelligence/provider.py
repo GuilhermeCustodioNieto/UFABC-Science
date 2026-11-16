@@ -24,6 +24,7 @@ from ufabc_science.config.settings import Settings
 from ufabc_science.intelligence.base import AIProvider, AIResponse
 from ufabc_science.intelligence.exceptions import AIProviderError
 from ufabc_science.intelligence.prompts import UNTRUSTED_TAG
+from ufabc_science.intelligence.schemas import REVIEW_CRITERIA
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +73,10 @@ class MockProvider(AIProvider):
             data: dict[str, Any] = {"categories": []}
         elif title == "AIArticleDraft":
             data = self._draft(payload)
+        elif title == "AIEditorialReview":
+            # O mock não revisa texto: devolve notas neutras de aprovação (o pipeline nem
+            # chama a revisão com o mock; subclasses de teste usam isto).
+            data = {name: 8 for name in REVIEW_CRITERIA} | {"problems": [], "instructions": ""}
         else:
             raise AIProviderError(f"MockProvider não suporta o esquema {title!r}")
         return AIResponse(
@@ -102,34 +107,31 @@ class MockProvider(AIProvider):
             )
 
         return {
-            "headline": f"[Rascunho mock] {title}"[:200],
-            "introduction": (
+            "headline": f"[Rascunho mock] {title}"[:140],
+            "subtitle": (
                 "Rascunho produzido pelo provedor mock, sem modelo de linguagem, apenas para "
-                f"desenvolvimento e testes. O trabalho “{title}” foi registrado em {venue}."
+                "desenvolvimento e testes."
+            ),
+            "discovery": (
+                f"O trabalho “{title}” foi registrado em {venue}."
                 + preprint_note
+                + " "
+                + quote(
+                    results or sentences[-2:],
+                    "Os resultados não estão descritos nos dados disponíveis na fonte.",
+                )
             ),
-            "context": (
-                f"O estudo foi associado às editorias: {categories}. Os termos técnicos do "
-                "resumo original devem ser explicados pelo editor antes da publicação."
+            "how_it_works": quote(
+                methods, "O método não está detalhado nos dados disponíveis na fonte."
             ),
-            "research_question": quote(
-                sentences[:1], "A pergunta de pesquisa não está disponível nos dados da fonte."
-            ),
-            "methodology": quote(
-                methods, "A metodologia não está detalhada nos dados disponíveis na fonte."
-            ),
-            "findings": quote(
-                results or sentences[-2:],
-                "Os resultados não estão descritos nos dados disponíveis na fonte.",
+            "why_it_matters": (
+                f"O estudo foi associado às editorias: {categories}. O editor deve explicar por "
+                "que a descoberta importa antes de publicar."
             ),
             "limitations": quote(
                 limits,
                 "As limitações não foram informadas nos dados disponíveis na fonte."
                 + preprint_note,
-            ),
-            "ufabc_relevance": (
-                f"A pesquisa dialoga com {categories}, temas presentes nos cursos "
-                "interdisciplinares da UFABC. O editor deve avaliar a relevância antes de publicar."
             ),
             "uncertainty_notes": [
                 "Conteúdo gerado pelo provedor mock: requer redação humana completa.",

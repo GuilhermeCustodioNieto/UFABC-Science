@@ -50,8 +50,36 @@ def test_manual_edit_is_detected_but_front_matter_changes_are_not() -> None:
     text = make_text()
     status_only = text.replace("status: pending_review", "status: approved")
     assert not parse_document(status_only).manually_edited
-    edited = text.replace("Texto de findings.", "Texto revisado pelo editor.")
+    edited = text.replace("Texto de discovery.", "Texto revisado pelo editor.")
     assert parse_document(edited).manually_edited
+
+
+def test_subtitle_roundtrip() -> None:
+    body = render_body(
+        "Título",
+        SECTIONS,
+        "Autora. Título. Revista. 2026.",
+        "https://doi.org/10.1/x",
+        subtitle="Uma frase que contextualiza a descoberta.",
+    )
+    doc = parse_document(dump_document({"schema": "x"}, body))
+    assert doc.sections["subtitle"] == "Uma frase que contextualiza a descoberta."
+    assert {k: v for k, v in doc.sections.items() if k != "subtitle"} == SECTIONS
+
+
+def test_legacy_documents_keep_their_sections() -> None:
+    """Matérias publicadas antes da reformulação continuam legíveis."""
+    legacy = (
+        "# Título\n\n## Introdução\n\nIntro.\n\n## Principais resultados\n\nAchados.\n\n"
+        "## Por que isso importa?\n\nRelevância.\n\n## Referência\n\nRef.\n"
+    )
+    doc = parse_document(dump_document({"schema": "x"}, legacy))
+    assert doc.sections == {
+        "introduction": "Intro.",
+        "findings": "Achados.",
+        "ufabc_relevance": "Relevância.",
+    }
+    assert doc.extra_sections == []
 
 
 def test_hash_ignores_line_endings_and_trailing_spaces() -> None:

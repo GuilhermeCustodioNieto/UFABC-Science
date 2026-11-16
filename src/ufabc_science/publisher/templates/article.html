@@ -6,7 +6,8 @@
 <article class="story">
   <header class="story-header">
     <h1>{{ article.headline }}</h1>
-    {% if article.original_title != article.headline %}<p class="story-subtitle"><cite>{{ article.original_title }}</cite></p>{% endif %}
+    {% if article.subtitle %}<p class="story-subtitle">{{ article.subtitle }}</p>{% endif %}
+    {% if article.original_title != article.headline %}<p class="story-original">Estudo original: <cite>{{ article.original_title }}</cite></p>{% endif %}
     <div class="story-byline">
       <span class="avatar" style="--h: {{ article.avatar_hue }}" aria-hidden="true">{{ article.author_initials }}</span>
       <div>

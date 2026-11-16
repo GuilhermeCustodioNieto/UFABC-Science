@@ -176,10 +176,11 @@ class PubMedCollector(BaseCollector):
     name = "pubmed"
     base_url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
     default_queries = (
-        "(neurosciences[MeSH] OR brain[tiab] OR cognition[MeSH] OR neurons[MeSH])",
-        "(genetics[MeSH] OR genomics[MeSH] OR molecular biology[MeSH] OR microbiology[MeSH] "
-        "OR biotechnology[MeSH] OR ecology[MeSH])",
-        "(biomedical engineering[MeSH] OR bioengineering[MeSH])",
+        "(drug discovery[tiab] OR gene therapy[tiab] OR vaccine[tiab] OR immunotherapy[tiab] "
+        "OR regenerative medicine[tiab] OR tissue engineering[tiab] OR clinical trial[pt])",
+        "(neurosciences[MeSH] OR consciousness[tiab] OR memory[tiab] OR sleep[tiab] "
+        "OR psychology[MeSH] OR emotions[MeSH])",
+        "(neoplasms/therapy[MeSH] OR diagnosis[MeSH] OR biotechnology[MeSH])",
     )
 
     @property

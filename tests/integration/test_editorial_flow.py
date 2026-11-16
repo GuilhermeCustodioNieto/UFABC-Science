@@ -53,6 +53,7 @@ def drafts(workspace: Workspace, fake_apis: FakeApis) -> Workspace:
         editorial_dir=workspace.editorial,
         limit=4,
         min_abstract_words=40,
+        min_score=0,  # a curadoria tem testes próprios (tests/unit/test_curation.py)
     )
     return workspace
 
@@ -126,7 +127,7 @@ def test_approval_is_recorded_with_snapshot_and_file_is_moved(drafts: Workspace)
 def test_warning_requires_justification(drafts: Workspace) -> None:
     path = files(drafts)[0]
     # Linguagem sensacionalista gera WARNING na verificação do texto editado.
-    edit_body(path, "## Introdução\n\n", "## Introdução\n\nResultado definitivamente inédito. ")
+    edit_body(path, "## A descoberta\n\n", "## A descoberta\n\nResultado definitivamente inédito. ")
     edit_front_matter(path, status="approved", reviewer="Editora")
 
     report = sync(drafts)
@@ -143,9 +144,7 @@ def test_warning_requires_justification(drafts: Workspace) -> None:
 
 def test_failed_content_cannot_be_approved(drafts: Workspace) -> None:
     path = files(drafts)[0]
-    edit_body(
-        path, "## Principais resultados\n\n", "## Principais resultados\n\nCurou 99,9% dos casos. "
-    )
+    edit_body(path, "## A descoberta\n\n", "## A descoberta\n\nCurou 99,9% dos casos. ")
     edit_front_matter(path, status="approved", warning_justification=JUSTIFICATION)
 
     report = sync(drafts)
@@ -175,7 +174,11 @@ def test_rejection_and_revision_request(drafts: Workspace) -> None:
 def test_change_after_approval_invalidates_it(drafts: Workspace) -> None:
     approved = approve(drafts, files(drafts)[0])
     article_id = read_document(approved).article_id
-    edit_body(approved, "## Limitações\n\n", "## Limitações\n\nTexto alterado. ")
+    edit_body(
+        approved,
+        "## Limitações e próximos passos\n\n",
+        "## Limitações e próximos passos\n\nTexto alterado. ",
+    )
 
     report = sync(drafts)
 
@@ -347,7 +350,11 @@ def test_publication_is_blocked_when_an_article_loses_approval(drafts: Workspace
         editions.add_article(session, 1, article_id, ws.editorial)
     _approve_intro(ws)
     approved = ws.editorial / "approved" / f"article-{article_id}.md"
-    edit_body(approved, "## Limitações\n\n", "## Limitações\n\nAlteração tardia. ")
+    edit_body(
+        approved,
+        "## Limitações e próximos passos\n\n",
+        "## Limitações e próximos passos\n\nAlteração tardia. ",
+    )
 
     with session_scope(ws.factory) as session, pytest.raises(PublicationBlockedError) as exc:
         editions.publish_edition(session, 1, published_by="Editora", confirm=True, **_kwargs(ws))
@@ -359,11 +366,11 @@ def test_grouping_follows_editoria_order_without_repetition(drafts: Workspace) -
     ids = _approved_ids(ws, 3)
     with session_scope(ws.factory) as session:
         editions.create_edition(session, "2026-W46", ws.settings.editions_dir)
-        sections = ["ciencias-e-stem", "neurociencia", "neurociencia"]
+        sections = ["outras-ciencias", "neurociencia-e-psicologia", "neurociencia-e-psicologia"]
         for article_id, section in zip(ids, sections, strict=True):
             editions.add_article(session, 1, article_id, ws.editorial, section=section)
         groups = editions.group_by_section(list(editions.get_edition(session, 1).items))
-    assert [slug for slug, _ in groups] == ["neurociencia", "ciencias-e-stem"]
+    assert [slug for slug, _ in groups] == ["neurociencia-e-psicologia", "outras-ciencias"]
     flat = [item.article_id for _, items in groups for item in items]
     assert sorted(flat) == sorted(ids) and len(flat) == len(set(flat))
 
@@ -505,7 +512,7 @@ def test_malicious_metadata_is_escaped(drafts: Workspace) -> None:
     with session_scope(ws.factory) as session:
         article = session.get(Article, article_id)
         article.journal = "<script>alert('x')</script>"
-    edit_body(path, "## Introdução\n\n", "## Introdução\n\n<script>alert('x')</script> ")
+    edit_body(path, "## A descoberta\n\n", "## A descoberta\n\n<script>alert('x')</script> ")
     approve(ws, path)
     with session_scope(ws.factory) as session:
         editions.create_edition(session, "2026-W46", ws.settings.editions_dir)
@@ -533,8 +540,8 @@ def test_editor_order_controls_sections(drafts: Workspace) -> None:
     ids = _approved_ids(ws, 2)
     with session_scope(ws.factory) as session:
         editions.create_edition(session, "2026-W46", ws.settings.editions_dir)
-        editions.add_article(session, 1, ids[0], ws.editorial, section="ciencias-e-stem")
-        editions.add_article(session, 1, ids[1], ws.editorial, section="neurociencia")
+        editions.add_article(session, 1, ids[0], ws.editorial, section="outras-ciencias")
+        editions.add_article(session, 1, ids[1], ws.editorial, section="neurociencia-e-psicologia")
         default = [
             s for s, _ in editions.group_by_section(list(editions.get_edition(session, 1).items))
         ]
@@ -542,5 +549,5 @@ def test_editor_order_controls_sections(drafts: Workspace) -> None:
         custom = [
             s for s, _ in editions.group_by_section(list(editions.get_edition(session, 1).items))
         ]
-    assert default == ["neurociencia", "ciencias-e-stem"]  # ordem inicial oficial
-    assert custom == ["ciencias-e-stem", "neurociencia"]  # ordem definida pelo editor
+    assert default == ["neurociencia-e-psicologia", "outras-ciencias"]  # ordem inicial oficial
+    assert custom == ["outras-ciencias", "neurociencia-e-psicologia"]  # ordem definida pelo editor

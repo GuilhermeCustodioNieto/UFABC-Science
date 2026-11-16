@@ -23,7 +23,11 @@ from sqlalchemy.engine import make_url
 from sqlalchemy.orm import Session, sessionmaker
 
 from ufabc_science.domain.models import Category
-from ufabc_science.domain.schemas import DEFAULT_CATEGORIES, CategoryDefinition
+from ufabc_science.domain.schemas import (
+    DEFAULT_CATEGORIES,
+    LEGACY_CATEGORY_SLUGS,
+    CategoryDefinition,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -109,9 +113,16 @@ def seed_categories(
 ) -> int:
     """Insere as editorias ausentes (pelo ``slug``). Retorna quantas foram criadas.
 
-    Editorias existentes não são sobrescritas, preservando ajustes manuais.
+    Editorias existentes não são sobrescritas, preservando ajustes manuais. As editorias
+    da primeira versão (``LEGACY_CATEGORY_SLUGS``) são desativadas.
     """
     existing = set(session.scalars(select(Category.slug)))
+    # Editorias antigas ficam no banco (edições publicadas as referenciam), mas inativas:
+    # a classificação e a validação só consideram editorias ativas.
+    for legacy in session.scalars(
+        select(Category).where(Category.slug.in_(LEGACY_CATEGORY_SLUGS), Category.active)
+    ):
+        legacy.active = False
     created = 0
     for definition in definitions:
         if definition.slug in existing:

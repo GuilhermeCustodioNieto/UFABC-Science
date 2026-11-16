@@ -46,6 +46,8 @@ def run(ws: Workspace, provider: AIProvider | None = None, **kwargs: Any):
         "limit": 3,
         "min_abstract_words": 40,
         "max_attempts": 3,
+        # Estes testes cobrem geração e versionamento; a curadoria tem testes próprios.
+        "min_score": 0,
     }
     params.update(kwargs)
     return generate_contents(ws.factory, provider or MockProvider(), **params)
@@ -82,7 +84,11 @@ def test_generation_creates_pending_markdown_and_never_approves(prepared: Worksp
 def test_selection_prioritizes_relevance(prepared: Workspace) -> None:
     with prepared.factory() as session:
         selection = select_for_generation(
-            session, limit=3, min_abstract_words=40, word_limits=DEFAULT_WORD_LIMITS
+            session,
+            limit=3,
+            min_abstract_words=40,
+            word_limits=DEFAULT_WORD_LIMITS,
+            min_score=0,
         )
         scores = [c.score for c in selection.selected]
         others = [
@@ -178,7 +184,7 @@ class InventingProvider(MockProvider):
     def generate_structured(self, prompt, response_schema, *, system=None) -> AIResponse:
         response = super().generate_structured(prompt, response_schema, system=system)
         data = dict(response.data)
-        data["findings"] = "O tratamento curou 97,3% dos 12.345 participantes avaliados."
+        data["discovery"] = "O tratamento curou 97,3% dos 12.345 participantes avaliados."
         return AIResponse(data, "inventor", "x", {})
 
 
@@ -208,7 +214,9 @@ def test_articles_with_insufficient_information_are_not_sent_to_ai(
 def test_manually_edited_markdown_is_never_overwritten(prepared: Workspace) -> None:
     run(prepared, limit=1)
     path = find_article_files(prepared.editorial)[0]
-    edited = path.read_text(encoding="utf-8").replace("## Introdução\n", "## Introdução\n\nNota.\n")
+    edited = path.read_text(encoding="utf-8").replace(
+        "## A descoberta\n", "## A descoberta\n\nNota.\n"
+    )
     path.write_text(edited, encoding="utf-8")
     article_id = read_document(path).article_id
 
@@ -229,3 +237,70 @@ def test_verify_command_reverifies_latest_versions(prepared: Workspace) -> None:
     with prepared.factory() as session:
         statuses = set(session.scalars(select(GeneratedContent.verification_status)))
     assert statuses <= set(VerificationStatus)
+
+
+# --- Revisão editorial: a primeira resposta do modelo não é aceita automaticamente ---------
+
+
+class ReviewingProvider(MockProvider):
+    """Simula um modelo real: a revisão reprova a 1ª versão (técnica) e aprova a reescrita."""
+
+    name = "reviewing_llm"
+    model = "review-1"
+
+    def __init__(self, approve_after: int = 1) -> None:
+        self.approve_after = approve_after
+        self.draft_prompts: list[str] = []
+        self.reviews = 0
+
+    def generate_structured(self, prompt, response_schema, *, system=None) -> AIResponse:
+        title = response_schema.get("title")
+        if title == "AIArticleDraft":
+            self.draft_prompts.append(prompt)
+        if title == "AIEditorialReview":
+            self.reviews += 1
+            approved = self.reviews > self.approve_after
+            data = {
+                "clarity": 9 if approved else 4,
+                "naturalness": 9,
+                "scientific_accuracy": 9,
+                "interest": 8,
+                "headline_quality": 8,
+                "jargon_free": 9 if approved else 3,
+                "headline_body_coherence": 9,
+                "fidelity": 9,
+                "fact_vs_hypothesis": 9,
+                "problems": [] if approved else ["'modulação neuromórfica' sem explicação."],
+                "instructions": "" if approved else "Explique os termos técnicos.",
+            }
+            return AIResponse(data, self.name, self.model, {"total_tokens": 5})
+        return super().generate_structured(prompt, response_schema, system=system)
+
+
+def test_technical_draft_is_rewritten_after_editorial_review(prepared: Workspace) -> None:
+    provider = ReviewingProvider(approve_after=1)
+    summary = run(prepared, provider, limit=1, require_ai_curation=False)
+    assert summary.generated == 1
+    assert len(provider.draft_prompts) == 2  # primeira versão + reescrita
+    assert "devolvida pela revisão editorial" in provider.draft_prompts[1]
+    assert "mais simples" in provider.draft_prompts[1]
+    assert "modulação neuromórfica" in provider.draft_prompts[1]
+    with prepared.factory() as session:
+        record = session.scalars(select(GeneratedContent)).one()
+        assert record.editorial_review["approved"] is True
+        assert [r["rewrite"] for r in record.editorial_review["rounds"]] == [["simplificar"], []]
+        codes = {c["code"] for c in record.verification_report["checks"]}
+        assert "editorial_review" not in codes
+
+
+def test_draft_still_rejected_by_review_is_not_publishable(prepared: Workspace) -> None:
+    provider = ReviewingProvider(approve_after=99)
+    run(prepared, provider, limit=1, require_ai_curation=False, review_rounds=1)
+    assert len(provider.draft_prompts) == 2  # limite de reescritas respeitado
+    with prepared.factory() as session:
+        record = session.scalars(select(GeneratedContent)).one()
+        assert record.editorial_review["approved"] is False
+        assert record.verification_status is not VerificationStatus.PASSED
+    doc = read_document(find_article_files(prepared.editorial)[0])
+    assert "REPROVADA" in doc.metadata["editorial_review"]
+    assert doc.metadata["curation"]  # a decisão da curadoria acompanha o rascunho

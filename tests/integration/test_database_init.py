@@ -52,14 +52,14 @@ def test_init_creates_schema_and_seeds_categories(db_url: str, tmp_path: Path) -
     assert result.previous_revision is None
     assert result.current_revision == head_revision(db_url)
     assert result.migrated is True
-    assert result.categories_created == 5
+    assert result.categories_created == 9
 
     engine = create_db_engine(db_url)
     try:
         assert set(inspect(engine).get_table_names()) == EXPECTED_TABLES
     finally:
         engine.dispose()
-    assert _count_categories(db_url) == 5
+    assert _count_categories(db_url) == 9
 
 
 def test_init_is_idempotent(db_url: str) -> None:
@@ -69,7 +69,7 @@ def test_init_is_idempotent(db_url: str) -> None:
 
     assert second.migrated is False
     assert second.categories_created == 0
-    assert _count_categories(db_url) == 5
+    assert _count_categories(db_url) == 9
 
 
 def test_seed_does_not_overwrite_manual_changes(db_url: str) -> None:
@@ -77,7 +77,7 @@ def test_seed_does_not_overwrite_manual_changes(db_url: str) -> None:
     engine = create_db_engine(db_url)
     try:
         with session_scope(create_session_factory(engine)) as session:
-            category = session.scalars(select(Category).where(Category.slug == "engenharias")).one()
+            category = session.scalars(select(Category).where(Category.slug == "economia")).one()
             category.description = "Descrição ajustada pelo editor."
             category.active = False
     finally:
@@ -88,9 +88,32 @@ def test_seed_does_not_overwrite_manual_changes(db_url: str) -> None:
     engine = create_db_engine(db_url)
     try:
         with create_session_factory(engine)() as session:
-            category = session.scalars(select(Category).where(Category.slug == "engenharias")).one()
+            category = session.scalars(select(Category).where(Category.slug == "economia")).one()
             assert category.description == "Descrição ajustada pelo editor."
             assert category.active is False
+    finally:
+        engine.dispose()
+
+
+def test_legacy_categories_are_kept_but_deactivated(db_url: str) -> None:
+    """Editorias da primeira versão continuam no banco (edições publicadas as usam), inativas."""
+    init_database(db_url)
+    engine = create_db_engine(db_url)
+    try:
+        with session_scope(create_session_factory(engine)) as session:
+            session.add(Category(name="Engenharias", slug="engenharias", active=True))
+    finally:
+        engine.dispose()
+
+    init_database(db_url)
+
+    engine = create_db_engine(db_url)
+    try:
+        with create_session_factory(engine)() as session:
+            legacy = session.scalars(select(Category).where(Category.slug == "engenharias")).one()
+            assert legacy.active is False
+            active = set(session.scalars(select(Category.slug).where(Category.active)))
+            assert "interseccoes-cientificas" in active and "engenharias" not in active
     finally:
         engine.dispose()
 

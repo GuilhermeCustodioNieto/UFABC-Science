@@ -55,7 +55,7 @@ from ufabc_science.editorial.markdown import (
     write_text_atomic,
 )
 from ufabc_science.editorial.validation import known_category_slugs, validate_document
-from ufabc_science.processing.relevance import latest_assessment
+from ufabc_science.processing.curation import effective_assessment
 
 logger = logging.getLogger(__name__)
 
@@ -221,7 +221,7 @@ def _candidates(session: Session, limit: int) -> list[Article]:
     ]
 
     def score(article: Article) -> float:
-        assessment = latest_assessment(article)
+        assessment = effective_assessment(article)
         return assessment.final_score if assessment and assessment.final_score else 0.0
 
     articles.sort(key=lambda a: (score(a), a.id), reverse=True)

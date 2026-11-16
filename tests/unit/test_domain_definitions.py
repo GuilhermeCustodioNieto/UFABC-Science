@@ -4,7 +4,11 @@ import pytest
 from pydantic import ValidationError
 
 from ufabc_science.domain.enums import EditorialStatus, PeerReviewStatus
-from ufabc_science.domain.schemas import DEFAULT_CATEGORIES, CategoryDefinition
+from ufabc_science.domain.schemas import (
+    DEFAULT_CATEGORIES,
+    LEGACY_CATEGORY_SLUGS,
+    CategoryDefinition,
+)
 
 
 def test_editorial_status_values_match_markdown_front_matter() -> None:
@@ -24,17 +28,22 @@ def test_peer_review_status_distinguishes_preprints() -> None:
     assert PeerReviewStatus("unknown") is PeerReviewStatus.UNKNOWN
 
 
-def test_default_categories_cover_the_five_editorias() -> None:
+def test_default_categories_follow_the_editorial_policy() -> None:
     slugs = [category.slug for category in DEFAULT_CATEGORIES]
 
     assert slugs == [
-        "neurociencia",
-        "computacao-e-tecnologia",
-        "engenharias",
-        "ciencias-biologicas",
-        "ciencias-e-stem",
+        "computacao-e-ia",
+        "engenharia-aeroespacial",
+        "astronomia-e-universo",
+        "medicina-e-biotecnologia",
+        "neurociencia-e-psicologia",
+        "filosofia-sociologia-e-arte",
+        "economia",
+        "interseccoes-cientificas",
+        "outras-ciencias",
     ]
-    assert len({category.name for category in DEFAULT_CATEGORIES}) == 5
+    assert len({category.name for category in DEFAULT_CATEGORIES}) == 9
+    assert not set(slugs) & set(LEGACY_CATEGORY_SLUGS)
 
 
 @pytest.mark.parametrize("slug", ["Neurociência", "com espaço", "-inicio", "fim-", "a--b", ""])

@@ -53,7 +53,9 @@ concurrency:
 jobs:
   pipeline:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    # Curadoria (até CURATION_LIMIT chamadas) + redação e revisão (até 4 chamadas por
+    # matéria) com um modelo que "pensa" podem passar de 45 minutos.
+    timeout-minutes: 90
     outputs:
       site: ${{ steps.site.outcome }}
     env:

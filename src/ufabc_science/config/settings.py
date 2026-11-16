@@ -99,6 +99,9 @@ class Settings(BaseSettings):
 
     # --- Automação ---------------------------------------------------------------------
     pipeline_lock_stale_hours: float = Field(default=6, gt=0, le=168)
+    # Minutos da execução depois dos quais o pipeline não começa novas chamadas à IA (curadoria
+    # e redação). Garante tempo para salvar os dados antes do limite do job. 0 = sem limite.
+    pipeline_ai_budget_minutes: float = Field(default=0, ge=0, le=1440)
     # Publicação automática sem revisão humana (ver docs/AUTOMATION_GUIDE.md). Desligada
     # por padrão: só aprova rascunhos PASSED gerados por IA real (nunca o mock).
     auto_publish: bool = False

@@ -240,6 +240,8 @@ def _execute(
 ) -> RunSummary:
     started = datetime.now(timezone.utc)
     clock = time.monotonic()
+    budget = settings.pipeline_ai_budget_minutes
+    deadline = clock + budget * 60 if budget else None
     with session_scope(factory) as session:
         session.add(
             PipelineRun(
@@ -356,6 +358,7 @@ def _execute(
                 min_abstract_words=settings.min_abstract_words,
                 today=today,
                 triage_pool=settings.curation_triage_pool,
+                deadline=deadline,
             )
         stats["curation_triaged"] = summary.triaged
         stats["curated"] = summary.assessed
@@ -378,8 +381,14 @@ def _execute(
             max_attempts=settings.ai_max_retries + 1,
             min_score=settings.curation_min_score,
             review_rounds=settings.editorial_review_rounds,
+            deadline=deadline,
         )
         stats["ai_provider"] = ai.name
+        if summary.skipped.get("tempo_esgotado"):
+            messages.append(
+                f"Tempo da execução esgotado: {len(summary.skipped['tempo_esgotado'])} "
+                "artigo(s) selecionado(s) ficam para a próxima execução."
+            )
         stats["articles_selected"] = summary.selected
         stats["contents_generated"] = summary.generated
         stats["verification_passed"] = summary.passed

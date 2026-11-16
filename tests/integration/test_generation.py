@@ -239,6 +239,14 @@ def test_verify_command_reverifies_latest_versions(prepared: Workspace) -> None:
     assert statuses <= set(VerificationStatus)
 
 
+def test_time_budget_stops_new_work_but_keeps_what_was_done(prepared: Workspace) -> None:
+    import time
+
+    summary = run(prepared, limit=3, deadline=time.monotonic() - 1)
+    assert summary.generated == 0
+    assert len(summary.skipped["tempo_esgotado"]) == 3
+
+
 # --- Revisão editorial: a primeira resposta do modelo não é aceita automaticamente ---------
 
 

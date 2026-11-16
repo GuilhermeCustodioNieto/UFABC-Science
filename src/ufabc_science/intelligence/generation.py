@@ -19,6 +19,7 @@ import json
 import logging
 import math
 import re
+import time
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
@@ -791,6 +792,7 @@ def generate_contents(
     min_score: float = CONSIDER_SCORE,
     require_ai_curation: bool | None = None,
     review_rounds: int = 1,
+    deadline: float | None = None,
 ) -> GenerationSummary:
     """Seleciona, gera, verifica e exporta rascunhos. Um artigo por transação."""
     limits = {**DEFAULT_WORD_LIMITS, **(word_limits or {})}
@@ -818,7 +820,16 @@ def generate_contents(
             summary.skipped["informacao_insuficiente"][:20],
         )
     summary.selected = len(chosen)
-    for article_id, input_hash, score in chosen:
+    for position, (article_id, input_hash, score) in enumerate(chosen):
+        if deadline is not None and time.monotonic() >= deadline:
+            # Orçamento de tempo esgotado: o restante fica para a próxima execução, e o que
+            # já foi feito é salvo (um job cancelado por tempo não salvaria nada).
+            summary.skipped["tempo_esgotado"] = [a for a, _, _ in chosen[position:]]
+            logger.warning(
+                "Tempo da execução esgotado: %d artigo(s) ficam para a próxima.",
+                len(chosen) - position,
+            )
+            break
         try:
             with session_scope(factory) as session:
                 article = session.get(Article, article_id)

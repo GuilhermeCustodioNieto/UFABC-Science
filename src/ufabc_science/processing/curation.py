@@ -33,6 +33,7 @@ from __future__ import annotations
 
 import logging
 import re
+import time
 from dataclasses import dataclass, field
 from datetime import date, datetime, timezone
 from typing import Any
@@ -1030,6 +1031,7 @@ def curate_articles(
     article_ids: list[int] | None = None,
     today: date | None = None,
     triage_pool: int = 0,
+    deadline: float | None = None,
 ) -> CurationSummary:
     """Curadoria por IA da lista curta. Cada avaliação é um novo registro (histórico).
 
@@ -1060,6 +1062,11 @@ def curate_articles(
     if article_ids:
         triage_notes = {}
     for article in articles:
+        if deadline is not None and time.monotonic() >= deadline:
+            summary.errors.append(
+                "Tempo da execução esgotado: curadoria interrompida (continua na próxima)."
+            )
+            break
         heuristic = heuristic_curation(article, today=today, min_abstract_words=min_abstract_words)
         try:
             assessment = ai_curation(provider, article, heuristic, allowed)

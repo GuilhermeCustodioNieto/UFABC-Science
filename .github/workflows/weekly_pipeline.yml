@@ -78,6 +78,9 @@ jobs:
       # Cota gratuita do Gemini limita chamadas por minuto: espaça as chamadas e, no HTTP 429,
       # espera Retry-After (ou 20/40/80 s) antes de tentar de novo.
       AI_MIN_INTERVAL: ${{ vars.AI_MIN_INTERVAL || '8' }}
+      # O job tem 90 min. Depois de 70 min o pipeline não começa novas chamadas à IA, para
+      # sobrar tempo de salvar os dados (um job cancelado por tempo não salva nada).
+      PIPELINE_AI_BUDGET_MINUTES: ${{ vars.PIPELINE_AI_BUDGET_MINUTES || '70' }}
       AUTO_PUBLISH: ${{ vars.AUTO_PUBLISH || 'true' }}
       OUTPUT_DIR: dist
       OPENALEX_API_KEY: ${{ secrets.OPENALEX_API_KEY }}

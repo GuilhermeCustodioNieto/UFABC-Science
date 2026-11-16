@@ -1,0 +1,137 @@
+{
+  "run_id": "457981b3eedc",
+  "status": "partial_success",
+  "started_at": "2026-11-16T14:46:49+00:00",
+  "duration_seconds": 670.53,
+  "parameters": {
+    "days": 7,
+    "sources": [
+      "openalex",
+      "pubmed",
+      "arxiv",
+      "crossref"
+    ],
+    "max_articles": null,
+    "generation_limit": 10,
+    "steps": [
+      "collect",
+      "enrich",
+      "classify",
+      "score",
+      "curate",
+      "generate"
+    ],
+    "trigger": "workflow_dispatch",
+    "start_date": null,
+    "end_date": null
+  },
+  "stats": {
+    "sources_consulted": [
+      "openalex",
+      "pubmed",
+      "arxiv",
+      "crossref"
+    ],
+    "collection_window": [
+      "2026-11-09",
+      "2026-11-16"
+    ],
+    "articles_found": 390,
+    "articles_new": 317,
+    "articles_duplicate": 73,
+    "possible_duplicates": 2,
+    "collection_errors": 0,
+    "failed_sources": [],
+    "per_source": [
+      {
+        "source": "openalex",
+        "collected": 100,
+        "inserted": 86,
+        "updated": 0,
+        "ignored": 14,
+        "flagged_duplicates": 2,
+        "invalid": 0,
+        "requests": 8,
+        "errors": []
+      },
+      {
+        "source": "pubmed",
+        "collected": 92,
+        "inserted": 84,
+        "updated": 0,
+        "ignored": 8,
+        "flagged_duplicates": 0,
+        "invalid": 0,
+        "requests": 6,
+        "errors": []
+      },
+      {
+        "source": "arxiv",
+        "collected": 98,
+        "inserted": 50,
+        "updated": 0,
+        "ignored": 48,
+        "flagged_duplicates": 0,
+        "invalid": 0,
+        "requests": 5,
+        "errors": []
+      },
+      {
+        "source": "crossref",
+        "collected": 100,
+        "inserted": 97,
+        "updated": 0,
+        "ignored": 3,
+        "flagged_duplicates": 0,
+        "invalid": 0,
+        "requests": 5,
+        "errors": []
+      }
+    ],
+    "crossref_checked": 49,
+    "crossref_confirmed": 1,
+    "articles_classified": 737,
+    "articles_without_category": 119,
+    "classification_uncertain": 122,
+    "articles_scored": 856,
+    "curated": 8,
+    "curation_decisions": {
+      "reject": 8
+    },
+    "curation_rejected": 8,
+    "curation_approved": 0,
+    "curation_explanations": {
+      "63": "REJEITAR (59.8)\nRejeitado: não apresenta novidade relevante.\nRejeitado: específico demais e sem implicações interessantes.\nIA: O texto analisa uma revisão de literatura sobre o perfilamento molecular e o microambiente imune de meningiomas, sem trazer resultados empíricos originais ou dados inéditos. O conteúdo é focado na prática médica especializada, sendo técnico e específico demais para o público leigo curioso. Dessa forma, a pesquisa não atinge os critérios de novidade e interesse geral exigidos pela linha editorial da UFABC Science.\nPotencial de curiosidade: 45 — Trata-se de um artigo técnico focado na estratificação molecular de um tipo de tumor intracraniano, de interesse restrito a especialistas e com pouca capacidade de despertar fascínio no público geral.\nRelevância científica: 80 — Artigo de revisão publicado na Annual Review of Medicine que organiza e consolida o conhecimento de uma década de avanços na biologia do meningioma.\nGrau de novidade: 40 — Por ser uma revisão de literatura, não apresenta experimentos primários ou descobertas inéditas, apenas compila dados e ensaios clínicos existentes.\nPotencial de impacto: 65 — Contribui para orientar a medicina personalizada e a seleção de tratamentos para meningioma, embora o impacto venha da literatura revisada e não diretamente do artigo.\nQualidade das evidências: 85 — Publicação revisada por pares em periódico acadêmico de alta reputação; limitações metodológicas específicas da revisão não foram informadas nos dados fornecidos.",
+      "279": "REJEITAR (82.9)\nRejeitado: área sem editoria própria só entra com descoberta excepcional (nota 83 < 85).\nIA: A pesquisa merece virar matéria por demonstrar, via biologia sintética, que o ATP atua como um regulador direto do envelhecimento celular. Publicado na eLife com alto rigor metodológico, o artigo responde a uma pergunta fundamental sobre bioenergética de forma engajadora para leitores curiosos. A abordagem de alimentar a célula diretamente com sua 'moeda energética' atende perfeitamente ao perfil editorial da UFABC Science.\nPotencial de curiosidade: 82 — A ideia de utilizar um transportador de um parasita para alimentar leveduras diretamente com energia (ATP) e estender sua vida desperta forte curiosidade no público geral.\nRelevância científica: 85 — Estudo publicado na eLife que estabelece uma relação causal direta entre a homeostase de ATP e o envelhecimento celular, algo antes incerto.\nGrau de novidade: 85 — Utiliza uma abordagem sintética inédita para desacoplar o nível de ATP intracelular da produção metabólica endógena.\nPotencial de impacto: 75 — Aprofunda a compreensão fundamental dos mecanismos de longevidade e bioenergética celular, com potencial de inspirar novas pesquisas em biologia do envelhecimento.\nQualidade das evidências: 88 — Estudo revisado por pares com controles mecanísticos sólidos e transcriptômica de célula única; limitações metodológicas não foram explicitamente informadas no abstract além de ser um modelo em levedura.",
+      "617": "REJEITAR (58.4)\nRejeitado: específico demais e sem implicações interessantes.\nIA: A pesquisa apresenta boa relevância técnica e rigor na integração de coortes bioinformáticas, porém é altamente específica e inteiramente computacional, necessitando de validação experimental de seus achados. Falta apelo de curiosidade abrangente para o leitor geral da UFABC Science, enquadrando-se como um avanço incremental de interesse restrito a especialistas da área de oncologia molecular.\nPotencial de curiosidade: 42 — O estudo aborda um mecanismo molecular específico de resistência a fármacos, com linguagem altamente técnica e de baixo apelo imediato para leitores leigos ou sem formação biomédica.\nRelevância científica: 72 — Pesquisa sólida realizada com integração de dados de múltiplas coortes públicas consolidadas (TCGA, SU2C/PCF, MSKCC) e sequenciamento de RNA de célula única.\nGrau de novidade: 60 — Mapeia uma condição de contorno para o prognóstico do eixo metabólico-vascular no câncer avançado, porém baseia-se em mineração de dados já existentes e modelos in silico.\nPotencial de impacto: 55 — Sugere alvos terapêuticos candidatos (como HIF1A e BCL2) e compostos para mitigação de resistência, mas todos dependem estritamente de validações experimentais futuras.\nQualidade das evidências: 75 — Artigo publicado em periódico revisado por pares com validação cruzada entre coortes, com limitação explícita por ser um estudo observacional/computacional sem testes in vitro ou in vivo.",
+      "626": "REJEITAR (72.8)\nRejeitado: específico demais e sem implicações interessantes.\nIA: Apesar do alto rigor metodológico e da relevância clínica sólida para o manejo da esclerose múltipla, a pesquisa trata de um detalhe muito técnico de biomarcadores e monitoramento de tratamento medicamentoso já existente. Falta o elemento de fascínio ou de descoberta ampla que faça um leitor leigo pensar 'eu não sabia que isso era possível'. Conforme os critérios editoriais da UFABC Science, o artigo é recusado por ser específico demais para o público geral.\nPotencial de curiosidade: 55 — A pesquisa foca na estratificação técnica de biomarcadores para um tratamento específico, o que é de difícil absorção e gera pouco apelo direto para leitores sem conhecimento prévio na área médica.\nRelevância científica: 88 — Estudo publicado em periódico revisado por pares com amostragem sólida de 2.370 pacientes e 15.025 amostras de sangue obtidas de ensaios clínicos de fase 3.\nGrau de novidade: 70 — Apresenta a sinergia entre os biomarcadores NfL e células B como indicador preditivo de resposta ao ocrelizumabe, trazendo avanço incremental para a medicina personalizada na esclerose múltipla.\nPotencial de impacto: 75 — Oferece fundamentação para que médicos identifiquem pacientes com esclerose múltipla em maior risco de incapacidade e ajustem as abordagens terapêuticas.\nQualidade das evidências: 90 — Baseado em ensaios clínicos randomizados de fase 3 bem documentados e em dados longitudinais de ampla escala, com revisão por pares confirmada.",
+      "659": "REJEITAR (57.4)\nRejeitado: não apresenta novidade relevante.\nIA: O artigo é uma revisão narrativa que consolida práticas e mecanismos já conhecidos sobre exercício resistido e consumo proteico para recomposição corporal. Por não apresentar uma descoberta inédita nem romper com o conhecimento estabelecido, a pesquisa não atende ao critério de novidade exigido pela UFABC Science.\nPotencial de curiosidade: 58 — A possibilidade de ganhar massa muscular e perder gordura ao mesmo tempo desperta interesse leigo, mas é um tópico bastante frequente na cultura fitness.\nRelevância científica: 68 — O artigo é uma revisão narrativa publicada em periódico especializado revisado por pares, baseada em ensaios clínicos e meta-análises.\nGrau de novidade: 40 — A pesquisa não traz uma descoberta inédita, apenas consolida estratégias e evidências já bem estabelecidas na literatura da nutrição esportiva.\nPotencial de impacto: 50 — Ajuda a fundamentar diretrizes de treino e dieta para profissionais da área, porém tem baixo potencial de transformação científica ou tecnológica ampla.\nQualidade das evidências: 75 — Trata-se de uma revisão de literatura publicada em fonte revisada por pares com base em estudos metodologicamente robustos (DXA e modelo de 4 compartimentos).",
+      "825": "REJEITAR (63.4)\nRejeitado: específico demais e sem implicações interessantes.\nIA: A pesquisa apresenta o framework PrometheusFreev2 para detecção simultânea de ataques a laser em redes neurais ópticas. Apesar do rigor acadêmico e da publicação em periódico especializado com revisão por pares, o tema aborda um nicho ultraespecífico de segurança de hardware. Falta-lhe a curiosidade abrangente e o apelo amplo exigidos pela linha editorial da UFABC Science, razão pela qual a matéria não deve ser publicada.\nPotencial de curiosidade: 45 — Trata-se de um tópico de segurança de hardware óptico extremamente específico e técnico, que raramente desperta a curiosidade de leitores não especialistas.\nRelevância científica: 75 — Publicado em periódico reconhecido da ACM com revisão por pares, apresentando soluções metodológicas válidas para segurança de aceleradores ópticos.\nGrau de novidade: 72 — Apresenta um novo mecanismo de preenchimento (dummy padding) para conter ataques de troca e aprimora técnicas anteriores como o PrometheusFree.\nPotencial de impacto: 58 — O impacto é restrito a engenheiros e projetistas de arquitetura de hardware para IA fotônica, sem aplicação ou apelo social direto no curto prazo.\nQualidade das evidências: 80 — Estudo computacional e de simulação publicado em fonte confiável com revisão por pares verificada, embora os dados informados dependam de simulação.",
+      "830": "REJEITAR (61.8)\nRejeitado: específico demais e sem implicações interessantes.\nIA: A pesquisa é um estudo fenomenológico denso e altamente especializado sobre a busca de partículas hipotéticas em colisores futuros de 100 TeV. Apesar de seu rigor acadêmico e publicação na Physical Review D, o apelo de curiosidade para o leitor comum é baixo e o tema é excessivamente específico para a linha editorial da UFABC Science.\nPotencial de curiosidade: 45 — O estudo aborda a fenomenologia de partículas hipotéticas em um colisor que ainda não existe, sendo bastante denso e de difícil apelo para o público leigo.\nRelevância científica: 75 — Pesquisa sólida em física de partículas teórica/fenomenológica, publicada em periódico respeitado na área (Physical Review D).\nGrau de novidade: 70 — Apresenta limites e sensibilidades inéditos para canais específicos de decaimento de ALPs fotofóbicas em um regime de 100 TeV.\nPotencial de impacto: 50 — Impacta o planejamento teórico de futuros aceleradores de partículas (como FCC-hh e SppC), mas sem aplicação prática direta ou de curto prazo.\nQualidade das evidências: 80 — Artigo revisado por pares em periódico consolidado, baseado em simulações detalhadas em nível de detector e fundo do Modelo Padrão.",
+      "843": "REJEITAR (68.8)\nRejeitado: específico demais e sem implicações interessantes.\nIA: Apesar do elevado rigor científico e da publicação em periódico de prestígio, o estudo é excessivamente técnico e focado em propriedades quânticas abstratas de matéria condensada. A descoberta dificilmente provocaria o deslumbramento ou o entendimento imediato de um leitor não especializado da UFABC Science. Por esse motivo, a matéria não deve ser recomendada para publicação.\nPotencial de curiosidade: 45 — O tema aborda conceitos extremamente abstratos de física da matéria condensada, como superfícies de Fermi e modelo de líquido de Luttinger, o que dificulta o interesse do público geral sem formação na área.\nRelevância científica: 85 — Pesquisa sólida publicada no Physical Review X com revisão por pares, combinando espectroscopia de fotoemissão de alta resolução e cálculos teóricos.\nGrau de novidade: 80 — Revela uma inesperada redução dimensional de uma estrutura bidimensional para um comportamento quase-unidimensional em niquelatos de camada única.\nPotencial de impacto: 60 — Oferece novas perspectivas teóricas para a física fundamental de niquelatos multicamadas, mas possui aplicação prática direta restrita no curto prazo.\nQualidade das evidências: 90 — Artigo revisado por pares em periódico de alto impacto, unindo dados experimentais detalhados de ARPES a modelos teóricos. Limitações específicas não foram detalhadas na fonte."
+    },
+    "ai_provider": "openai_compatible",
+    "articles_selected": 0,
+    "contents_generated": 0,
+    "verification_passed": 0,
+    "verification_warning": 0,
+    "verification_failed": 0,
+    "generation_skipped": {
+      "aguardando_curadoria": 803,
+      "informacao_insuficiente": 39,
+      "ja_aprovado": 6,
+      "rejeitado_pela_curadoria": 8
+    },
+    "markdown_files": []
+  },
+  "errors": [
+    "artigo 549: Provedor indisponível: HTTP 503",
+    "artigo 314: Provedor indisponível: HTTP 429",
+    "artigo 615: Provedor indisponível: HTTP 429",
+    "artigo 835: Provedor indisponível: HTTP 429",
+    "artigo 138: Provedor indisponível: HTTP 429",
+    "artigo 340: Provedor indisponível: HTTP 429",
+    "artigo 639: Provedor indisponível: HTTP 503"
+  ],
+  "messages": []
+}

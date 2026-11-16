@@ -1,0 +1,145 @@
+{
+  "run_id": "5bb5a339fdc2",
+  "status": "partial_success",
+  "started_at": "2026-11-16T15:08:12+00:00",
+  "duration_seconds": 3104.38,
+  "parameters": {
+    "days": 7,
+    "sources": [
+      "openalex",
+      "pubmed",
+      "arxiv",
+      "crossref"
+    ],
+    "max_articles": null,
+    "generation_limit": 10,
+    "steps": [
+      "collect",
+      "enrich",
+      "classify",
+      "score",
+      "curate",
+      "generate"
+    ],
+    "trigger": "workflow_dispatch",
+    "start_date": null,
+    "end_date": null
+  },
+  "stats": {
+    "sources_consulted": [
+      "openalex",
+      "pubmed",
+      "arxiv",
+      "crossref"
+    ],
+    "collection_window": [
+      "2026-11-09",
+      "2026-11-16"
+    ],
+    "articles_found": 390,
+    "articles_new": 0,
+    "articles_duplicate": 390,
+    "possible_duplicates": 0,
+    "collection_errors": 0,
+    "failed_sources": [],
+    "per_source": [
+      {
+        "source": "openalex",
+        "collected": 100,
+        "inserted": 0,
+        "updated": 0,
+        "ignored": 100,
+        "flagged_duplicates": 0,
+        "invalid": 0,
+        "requests": 8,
+        "errors": []
+      },
+      {
+        "source": "pubmed",
+        "collected": 92,
+        "inserted": 0,
+        "updated": 0,
+        "ignored": 92,
+        "flagged_duplicates": 0,
+        "invalid": 0,
+        "requests": 6,
+        "errors": []
+      },
+      {
+        "source": "arxiv",
+        "collected": 98,
+        "inserted": 0,
+        "updated": 0,
+        "ignored": 98,
+        "flagged_duplicates": 0,
+        "invalid": 0,
+        "requests": 5,
+        "errors": []
+      },
+      {
+        "source": "crossref",
+        "collected": 100,
+        "inserted": 0,
+        "updated": 0,
+        "ignored": 100,
+        "flagged_duplicates": 0,
+        "invalid": 0,
+        "requests": 5,
+        "errors": []
+      }
+    ],
+    "crossref_checked": 0,
+    "crossref_confirmed": 0,
+    "articles_classified": 0,
+    "articles_without_category": 119,
+    "classification_uncertain": 0,
+    "articles_scored": 0,
+    "curation_triaged": 100,
+    "curated": 4,
+    "curation_decisions": {
+      "publish": 2,
+      "consider": 1,
+      "reject": 1
+    },
+    "curation_rejected": 1,
+    "curation_approved": 3,
+    "curation_explanations": {
+      "112": "PUBLICAR (82.1)\nNota 82: publicar.\nIA: A pesquisa merece virar matéria por trazer uma descoberta impactante e contraintuitiva sobre a consciência e o processamento de linguagem em pacientes graves. O estudo revela que o EEG à beira do leito pode identificar atividade cognitiva oculta que prevê recuperação a longo prazo. O texto deve ressaltar a alta especificidade do teste, ao mesmo tempo em que deixa claras as suas limitações, como a baixa sensibilidade e a necessidade de validação clínica adicional.\nTriagem: curiosidade 92 (Descobre que exames de EEG à beira do leito conseguem detectar processamento de linguagem em pacientes não responsivos.).\nPotencial de curiosidade: 88 — A ideia de que o cérebro de um paciente clinicamente não responsivo na UTI consegue compreender a incongruência de uma frase desperta enorme fascínio e curiosidade no público geral.\nRelevância científica: 82 — Trata-se de um estudo prospectivo multicêntrico publicado no periódico Neurology, avaliando 105 pacientes com metodologia rigorosa de processamento de EEG.\nGrau de novidade: 80 — Demonstra a viabilidade de usar testes semânticos à beira do leito na fase aguda como um biomarcador específico de recuperação funcional futura.\nPotencial de impacto: 78 — Tem potencial para transformar a avaliação prognóstica em UTIs neurológicas, auxiliando na identificação de funções cognitivas preservadas não detectáveis pelo exame físico.\nQualidade das evidências: 75 — Estudo observacional prospectivo com revisão por pares confirmada, embora com amostra moderada (13 pacientes com o sinal detectado) e baixa sensibilidade, exigindo validação em coortes maiores.",
+      "423": "PUBLICAR (76.9)\nNota 77: publicar.\nIA: A pesquisa merece publicação por apresentar um avanço concreto na área de biorrobótica, unindo modelagem física rigorosa a experimentos práticos. A capacidade do robô de galopar e se adaptar a terrenos complexos usando uma espinha de tensegridade é um tema altamente visual e instigante para a comunidade universitária.\nTriagem: curiosidade 88 (Desenvolvimento de um robô quadrúpede bioinspirado em guepardos capaz de galopar em alta velocidade graças a estruturas de tensegridade.).\nPotencial de curiosidade: 78 — Robôs que imitam o galope e a flexibilidade da espinha de guepardos atraem o público leigo e geram curiosidade sobre a engenharia por trás do movimento animal.\nRelevância científica: 78 — Apresenta um modelo dinâmico de Lagrange para a espinha de tensegridade e valida o mecanismo através de rigorosos ensaios experimentais.\nGrau de novidade: 75 — Integra estruturas de tensegridade à coluna de robôs quadrúpedes para otimizar o galope e a eficiência energética em terenos irregulares.\nPotencial de impacto: 70 — Oferece caminhos para a criação de robôs mais ágeis e eficientes em missões de exploração e resgate em terrenos acidentados.\nQualidade das evidências: 85 — Estudo publicado no Journal of Field Robotics com validação teórica e prototipagem física exaustivamente testada.",
+      "429": "REJEITAR (68.1)\nRejeitado: específico demais e sem implicações interessantes.\nIA: Apesar de possuir rigor metodológico e amostragem de dados extensa (cerca de 24.000 h de observação), o achado é muito específico da área de ecologia comportamental de mamíferos. A pesquisa não apresenta apelo de curiosidade geral nem impacto amplo o suficiente para gerar uma matéria de divulgação científica que encante o leitor leigo da UFABC Science.\nTriagem: curiosidade 82 (Revela como ratos-toupeira cooperam socialmente escavando túneis em busca de alimento em vez de prestar cuidados diretos aos filhotes.).\nPotencial de curiosidade: 62 — O estudo sobre a divisão de tarefas em sociedades de ratos-toupeira traz algum interesse natural, mas o achado específico sobre a frequência de permanência no ninho é focado e pouco surpreendente para leitores leigos.\nRelevância científica: 75 — O artigo traz dados sistemáticos relevantes sobre a biologia comportamental e evolução da cooperação em mamíferos sociais, publicado em periódico especializado da área.\nGrau de novidade: 70 — Contradiz a suposição prévia de que a permanência no ninho por não reprodutores representava uma forma direta de cuidado aloparental na espécie.\nPotencial de impacto: 55 — A contribuição é restrita ao campo da etologia e ecologia comportamental animal, sem desdobramentos tecnológicos ou sociais amplos.\nQualidade das evidências: 85 — Estudo observacional minucioso apoiado em cerca de 24.000 horas de dados comportamentais registrados em cativeiro, publicado em periódico com revisão por pares.",
+      "645": "AVALIAR SE HOUVER ESPAÇO (75.0)\nNota 75: avaliar se houver espaço.\nIA: A pesquisa apresenta uma solução analógica criativa e acessível para a redução de memórias intrusivas em transtornos relacionados ao trauma. Apesar de ser um estudo piloto com amostra pequena (40 pacientes) e acompanhamento de curto prazo (duas semanas), trata-se de um ensaio clínico randomizado revisado por pares com resultados estatisticamente relevantes e alto potencial de interesse público.\nTriagem: curiosidade 88 (Demonstra que uma tarefa visual simples com papel e caneta pode reduzir memórias traumáticas intrusivas.).\nPotencial de curiosidade: 78 — A ideia de usar um exercício analógico simples de papel e caneta para 'bloquear' memórias intrusivas de trauma é altamente intuitiva e desperta a curiosidade do público geral.\nRelevância científica: 75 — Ensaio clínico randomizado e cego publicado em periódico revisado por pares da área de psicotraumatologia, testando uma hipótese clara de tarefas concorrentes de imagem.\nGrau de novidade: 75 — Adapta intervenções digitais anteriores para uma versão não digital (papel e caneta) viável para contextos com escassez de recursos.\nPotencial de impacto: 72 — Oferece uma alternativa acessível e de baixo custo para o manejo de sintomas de trauma em locais sem infraestrutura digital, embora exija validação em maior escala.\nQualidade das evidências: 70 — Trata-se de um ensaio clínico controlado, mas com amostra pequena (40 participantes), dependência de autorrelato e acompanhamento limitado a duas semanas."
+    },
+    "ai_provider": "openai_compatible",
+    "articles_selected": 4,
+    "contents_generated": 0,
+    "verification_passed": 0,
+    "verification_warning": 0,
+    "verification_failed": 0,
+    "generation_skipped": {
+      "aguardando_curadoria": 799,
+      "informacao_insuficiente": 39,
+      "ja_aprovado": 6,
+      "rejeitado_pela_curadoria": 8
+    },
+    "markdown_files": []
+  },
+  "errors": [
+    "triagem do lote 3: Provedor indisponível: HTTP 429",
+    "artigo 131: Provedor indisponível: HTTP 429",
+    "artigo 615: Provedor indisponível: HTTP 429",
+    "artigo 155: Provedor indisponível: HTTP 429",
+    "artigo 452: Provedor indisponível: HTTP 429",
+    "artigo 117: Provedor indisponível: HTTP 429",
+    "artigo 157: Provedor indisponível: HTTP 429",
+    "artigo 251: Provedor indisponível: HTTP 429",
+    "artigo 698: Provedor indisponível: HTTP 429",
+    "artigo 695: Provedor indisponível: HTTP 429",
+    "artigo 549: Provedor indisponível: HTTP 429",
+    "artigo 663: Provedor indisponível: HTTP 429",
+    "artigo 279: Provedor indisponível: HTTP 429",
+    "artigo 112: Provedor indisponível: HTTP 429",
+    "artigo 423: Provedor indisponível: HTTP 429",
+    "artigo 645: Provedor indisponível: HTTP 429"
+  ],
+  "messages": []
+}

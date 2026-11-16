@@ -564,3 +564,26 @@ def test_curation_uses_triage_when_pool_is_larger(seeded_session: Session) -> No
     (article_id,) = summary.explanations
     assert session.get(Article, article_id).title == gem_title
     assert "Triagem: curiosidade 99" in summary.explanations[article_id]
+
+
+def test_policy_changes_apply_to_stored_assessments(seeded_session: Session) -> None:
+    """Uma avaliação gravada como rejeitada pelo corte antigo de Outras Ciências (85) é
+    selecionada com o corte atual (80)."""
+    from ufabc_science.domain.models import RelevanceAssessment
+
+    session = seeded_session
+    article = persist(session, scenario_article("ia_extraordinaria"))
+    score_articles(session, today=TODAY)
+    session.add(
+        RelevanceAssessment(
+            article=article, scientific_relevance=83, originality=83, potential_impact=83,
+            interdisciplinarity=30, ufabc_interest=83, curiosity=83, evidence_quality=83,
+            final_score=82.9, method_version="curation-ai-antigo", decision=REJECT,
+            decision_reasons=["Rejeitado: nota 83 < 85."], rejection_flags=[],
+        )
+    )  # fmt: skip
+    session.flush()
+    selection = select_for_generation(
+        session, limit=5, min_abstract_words=40, word_limits=DEFAULT_WORD_LIMITS
+    )
+    assert [c.article.id for c in selection.selected] == [article.id]

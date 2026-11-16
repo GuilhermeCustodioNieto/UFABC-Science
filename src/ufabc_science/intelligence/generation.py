@@ -84,6 +84,7 @@ from ufabc_science.processing.curation import (
     CONSIDER_SCORE,
     PRIORITY_SCORE,
     REJECT,
+    decide,
     effective_assessment,
     explain_record,
     infer_evidence_level,
@@ -277,10 +278,16 @@ def select_for_generation(
             if require_ai_curation and not is_ai_assessment(assessment):
                 result.skip("aguardando_curadoria", article.id)
                 continue
-            # Rejeição por regra (atualização menor, opinião, área sem editoria...) vale
-            # sempre; nota baixa é tratada pelo corte ``min_score``.
+            # A decisão é recalculada com a política atual (nota, regras e editorias), para
+            # que mudanças de corte valham também para avaliações já gravadas. Rejeição por
+            # regra vale sempre; nota baixa é tratada pelo corte ``min_score``.
+            decision, _ = decide(
+                assessment.final_score,
+                list(assessment.rejection_flags or []),
+                [link.category.slug for link in article.categories if not link.is_uncertain],
+            )
             rejected_by_rule = bool(assessment.rejection_flags) or (
-                assessment.decision == REJECT and assessment.final_score >= CONSIDER_SCORE
+                decision == REJECT and assessment.final_score >= CONSIDER_SCORE
             )
             if rejected_by_rule:
                 result.skip("rejeitado_pela_curadoria", article.id)

@@ -1,11 +1,16 @@
 {% extends "base.html" %}
 {% block title %}{{ edition.title }} · UFABC Science{% endblock %}
 {% block content %}
-<article class="edition">
-  <header class="edition-header">
-    <p class="eyebrow">Edição {{ "%03d" | format(edition.number) }}</p>
+<div class="narrow">
+  <header class="pub-header">
+    <p class="pub-kicker">Edição #{{ "%03d" | format(edition.number) }}</p>
     <h1>{{ edition.title }}</h1>
-    <p class="edition-period">Período de referência: {{ edition.period }}{% if edition.published %} · publicada em <time>{{ edition.published }}</time>{% endif %}</p>
+    <p class="pub-meta">{{ edition.period }}{% if edition.published %} · publicada em <time>{{ edition.published }}</time>{% endif %} · {{ edition.articles | length }} textos</p>
+    {% if edition.groups | length > 1 %}
+    <nav class="pub-nav" aria-label="Seções da edição">
+      {% for slug, name, articles in edition.groups %}<a href="#secao-{{ slug }}">{{ name }} <span>{{ articles | length }}</span></a>{% endfor %}
+    </nav>
+    {% endif %}
   </header>
   {% if preview and edition.blocked %}
   <aside class="notice" role="note">
@@ -13,15 +18,17 @@
     <ul>{% for item in edition.blocked %}<li>{{ item }}</li>{% endfor %}</ul>
   </aside>
   {% endif %}
-  {% if edition.introduction %}<div class="edition-intro prose">{{ edition.introduction }}</div>{% endif %}
-  {% for slug, name, articles in edition.groups %}
-  <section class="edition-section" aria-labelledby="secao-{{ slug }}">
-    <h2 id="secao-{{ slug }}" class="section-title">{{ name }}</h2>
-    <div class="cards">
-      {% set in_section = true %}
-      {% for article in articles %}{% include "components/article_card.html" %}{% endfor %}
-    </div>
-  </section>
-  {% endfor %}
-</article>
+  {% if edition.introduction %}<div class="pub-intro prose">{{ edition.introduction }}</div>{% endif %}
+  <article class="edition">
+    {% for slug, name, articles in edition.groups %}
+    <section class="pub-section" aria-labelledby="secao-{{ slug }}">
+      <h2 id="secao-{{ slug }}" class="pub-section-title"><span class="dot cat-{{ slug }}" aria-hidden="true"></span>{{ name }}</h2>
+      <div class="posts">
+        {% set in_section = true %}
+        {% for article in articles %}{% include "components/article_card.html" %}{% endfor %}
+      </div>
+    </section>
+    {% endfor %}
+  </article>
+</div>
 {% endblock %}

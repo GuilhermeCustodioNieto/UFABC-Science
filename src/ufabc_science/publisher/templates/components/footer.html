@@ -1,5 +1,7 @@
 <footer class="site-footer">
-  <div class="container">
+  <div class="footer-inner">
+    <p class="footer-brand">UFABC Science</p>
+    {% if ai_notice %}<p class="ai-notice" role="note">{{ ai_notice }}</p>{% endif %}
     <p class="disclaimer">{{ disclaimer }}</p>
     <p class="footer-note">Os textos resumem pesquisas publicadas por seus autores. Consulte sempre o trabalho original. Nenhum conteúdo constitui aconselhamento médico ou clínico.</p>
   </div>

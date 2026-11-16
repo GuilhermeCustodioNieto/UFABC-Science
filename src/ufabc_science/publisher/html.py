@@ -99,7 +99,12 @@ class ArticleView:
     secondary_categories: list[str]
     summary: Markup
     path: str
+    reading_minutes: int = 1
+    lead_author: str | None = None
+    author_initials: str = "?"
+    avatar_hue: int = 0
     edition_slug: str | None = None
+    edition_number: int | None = None
 
 
 @dataclass
@@ -125,6 +130,45 @@ def _fmt_date(value: date | datetime | None, tz: ZoneInfo) -> str | None:
         value = value.astimezone(tz)
         return value.strftime("%d/%m/%Y")
     return value.strftime("%d/%m/%Y")
+
+
+WORDS_PER_MINUTE = 200
+
+
+def _reading_minutes(sections: dict[str, str]) -> int:
+    words = sum(len((text or "").split()) for text in sections.values())
+    return max(1, round(words / WORDS_PER_MINUTE))
+
+
+def _initials(name: str | None) -> str:
+    parts = [p for p in (name or "").replace(".", " ").split() if p[:1].isalpha()]
+    if not parts:
+        return "?"
+    if len(parts) == 1:
+        return parts[0][:2].upper()
+    return (parts[0][0] + parts[-1][0]).upper()
+
+
+def _hue(seed: str) -> int:
+    # Hash estável (o hash() do Python varia entre execuções e quebraria o determinismo).
+    value = 0
+    for char in seed:
+        value = (value * 31 + ord(char)) % 360
+    return value
+
+
+def interleave(articles: list[ArticleView]) -> list[ArticleView]:
+    """Mistura as editorias em rodízio para o feed não parecer uma lista por seção."""
+    buckets: dict[str, list[ArticleView]] = {}
+    for article in articles:
+        buckets.setdefault(article.primary_category, []).append(article)
+    queues = list(buckets.values())
+    mixed: list[ArticleView] = []
+    while any(queues):
+        for queue in queues:
+            if queue:
+                mixed.append(queue.pop(0))
+    return mixed
 
 
 def _peer_label(status: PeerReviewStatus) -> str:
@@ -172,6 +216,10 @@ def article_view(
         secondary_categories=[names.get(c, c) for c in categories if c != section],
         summary=render_markdown(sections.get("introduction")),
         path=f"articles/article-{article.id}/index.html",
+        reading_minutes=_reading_minutes(sections),
+        lead_author=authors[0] if authors else None,
+        author_initials=_initials(authors[0] if authors else article.journal),
+        avatar_hue=_hue(authors[0] if authors else str(article.id)),
     )
 
 
@@ -259,6 +307,7 @@ def _edition_view(
                 continue
             view = article_view(item.article, review, section, names, tz)
             view.edition_slug = edition.slug
+            view.edition_number = edition.edition_number
             views.append(view)
         if views:
             groups.append((section, names.get(section, section), views))
@@ -320,6 +369,8 @@ def build_site(session: Session, output_dir: Path, *, timezone_name: str) -> Bui
         "index.html",
         "home.html",
         latest=views[0] if views else None,
+        feed=_feed(views),
+        editions=views,
         categories=[(slug, names.get(slug, slug)) for slug in _category_order(names)],
         preview=False,
     )
@@ -343,11 +394,24 @@ def build_preview(
         "index.html",
         "home.html",
         latest=view,
+        feed=_feed([view]),
+        editions=[view],
         categories=[(slug, names.get(slug, slug)) for slug in _category_order(names)],
         preview=True,
     )
     writer.page("archive/index.html", "archive.html", editions=[view], preview=True)
     return BuildResult(output, sorted(writer.written), [number], errors=view.blocked)
+
+
+def _feed(views: list[EditionView]) -> list[ArticleView]:
+    """Todas as publicações, da edição mais recente para a mais antiga, sem repetição."""
+    seen: set[int] = set()
+    feed: list[ArticleView] = []
+    for view in views:
+        fresh = [a for a in view.articles if a.id not in seen]
+        seen.update(a.id for a in fresh)
+        feed += interleave(fresh)
+    return feed
 
 
 def _category_order(names: dict[str, str]) -> list[str]:

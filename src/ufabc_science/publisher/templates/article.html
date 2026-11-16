@@ -1,25 +1,36 @@
 {% extends "base.html" %}
 {% block title %}{{ article.headline }} · UFABC Science{% endblock %}
+{% block body_class %}page-article{% endblock %}
 {% block content %}
-<article class="article">
-  <header class="article-header">
-    <p class="card-meta">
-      <span class="tag">{{ article.primary_category_name }}</span>
-      {% for name in article.secondary_categories %}<span class="tag tag-secondary">{{ name }}</span>{% endfor %}
-    </p>
+<div class="read-progress" aria-hidden="true"><span></span></div>
+<article class="story">
+  <header class="story-header">
     <h1>{{ article.headline }}</h1>
-    <p class="article-original"><span class="label">Título original:</span> <cite>{{ article.original_title }}</cite></p>
-    <p class="review-status{% if article.is_preprint %} review-preprint{% endif %}">{{ article.peer_review_label }}</p>
+    {% if article.original_title != article.headline %}<p class="story-subtitle"><cite>{{ article.original_title }}</cite></p>{% endif %}
+    <div class="story-byline">
+      <span class="avatar" style="--h: {{ article.avatar_hue }}" aria-hidden="true">{{ article.author_initials }}</span>
+      <div>
+        <p class="story-author">{% if article.authors %}{{ article.authors[:3] | join(", ") }}{% if article.authors | length > 3 %} e outros {{ article.authors | length - 3 }}{% endif %}{% else %}Autoria não informada{% endif %}</p>
+        <p class="story-meta">
+          {% if article.journal %}<span>{{ article.journal }}</span><span aria-hidden="true">·</span>{% endif %}
+          <span>{{ article.reading_minutes }} min de leitura</span>
+          {% if article.publication_date %}<span aria-hidden="true">·</span><time>{{ article.publication_date }}</time>{% endif %}
+        </p>
+      </div>
+    </div>
+    <div class="story-actions">
+      <span class="review-status{% if article.is_preprint %} review-preprint{% endif %}">{{ article.peer_review_label }}</span>
+      <button class="icon-btn" type="button" data-share hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>
+        <span class="icon-label">Copiar link</span>
+      </button>
+    </div>
+    {% if ai_notice %}<p class="story-disclosure">Resumo escrito por IA a partir dos dados públicos da pesquisa, sem revisão humana.</p>{% endif %}
     {% if article.is_preprint %}
     <p class="notice">Este trabalho é um <strong>preprint</strong>: ainda não passou por revisão por pares e seus resultados podem mudar.</p>
     {% endif %}
-    <dl class="facts">
-      {% if article.authors %}<div><dt>Autoria</dt><dd>{{ article.authors | join(", ") }}</dd></div>{% endif %}
-      {% if article.journal %}<div><dt>Publicação</dt><dd>{{ article.journal }}</dd></div>{% endif %}
-      {% if article.publication_date %}<div><dt>Data</dt><dd><time>{{ article.publication_date }}</time></dd></div>{% endif %}
-      {% if article.doi %}<div><dt>DOI</dt><dd><a href="{{ article.doi_url }}" rel="noopener noreferrer nofollow">{{ article.doi }}</a></dd></div>{% endif %}
-    </dl>
   </header>
+
   <div class="prose">
     {% for title, html in article.sections %}
     <section>
@@ -27,14 +38,44 @@
       {{ html }}
     </section>
     {% endfor %}
+  </div>
+
+  <footer class="story-footer">
+    <ul class="chips">
+      <li><span class="chip chip-lg cat-{{ article.primary_category }}">{{ article.primary_category_name }}</span></li>
+      {% for name in article.secondary_categories %}<li><span class="chip chip-lg">{{ name }}</span></li>{% endfor %}
+    </ul>
     <section class="reference">
       <h2>Referência</h2>
       <p>{{ article.reference }}</p>
+      <dl class="facts">
+        {% if article.authors %}<div><dt>Autoria</dt><dd>{{ article.authors | join(", ") }}</dd></div>{% endif %}
+        {% if article.journal %}<div><dt>Publicação</dt><dd>{{ article.journal }}</dd></div>{% endif %}
+        {% if article.publication_date %}<div><dt>Data</dt><dd><time>{{ article.publication_date }}</time></dd></div>{% endif %}
+        {% if article.doi %}<div><dt>DOI</dt><dd><a href="{{ article.doi_url }}" rel="noopener noreferrer nofollow">{{ article.doi }}</a></dd></div>{% endif %}
+      </dl>
       {% if article.source_url %}<p><a class="button" href="{{ article.source_url }}" rel="noopener noreferrer nofollow">Consultar pesquisa original</a></p>{% endif %}
     </section>
-  </div>
-  {% if article.edition_slug %}
-  <p class="back"><a href="{{ root }}editions/{{ article.edition_slug }}/index.html">← Voltar à edição</a></p>
-  {% endif %}
+  </footer>
 </article>
+
+{% set others = (edition.articles | rejectattr("id", "equalto", article.id) | list) if edition is defined else [] %}
+{% if others %}
+<section class="more" aria-labelledby="mais">
+  <div class="more-inner">
+    <h2 id="mais">Mais da edição #{{ "%03d" | format(edition.number) }}</h2>
+    <div class="more-grid">
+      {% for other in others[:4] %}
+      <a class="more-card" href="{{ root }}{{ other.path }}">
+        <span class="thumb thumb-wide cat-{{ other.primary_category }}" style="--seed: {{ other.avatar_hue }}deg" aria-hidden="true"><span>{{ other.primary_category_name[:1] }}</span></span>
+        <span class="more-cat">{{ other.primary_category_name }}</span>
+        <span class="more-title">{{ other.headline }}</span>
+        <span class="more-meta">{{ other.reading_minutes }} min de leitura</span>
+      </a>
+      {% endfor %}
+    </div>
+    <p class="back"><a href="{{ root }}editions/{{ edition.slug }}/index.html">Ver a edição completa →</a></p>
+  </div>
+</section>
+{% endif %}
 {% endblock %}

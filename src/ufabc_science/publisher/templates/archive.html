@@ -1,14 +1,20 @@
 {% extends "base.html" %}
 {% block title %}Edições · UFABC Science{% endblock %}
 {% block content %}
-<section class="archive">
+<section class="narrow archive">
   <h1>Edições</h1>
+  <p class="pub-meta">Tudo o que já saiu, da mais recente para a mais antiga.</p>
   {% if editions %}
   <ol class="archive-list">
     {% for edition in editions %}
     <li>
-      <a href="{{ root }}editions/{{ edition.slug }}/index.html">{{ edition.title }}</a>
-      <span class="archive-meta">{{ edition.period }}{% if edition.published %} · publicada em {{ edition.published }}{% endif %} · {{ edition.articles | length }} artigo(s)</span>
+      <a class="archive-item" href="{{ root }}editions/{{ edition.slug }}/index.html">
+        <span class="archive-num">#{{ "%03d" | format(edition.number) }}</span>
+        <span class="archive-body">
+          <span class="archive-title">{{ edition.title }}</span>
+          <span class="archive-meta">{{ edition.period }}{% if edition.published %} · publicada em {{ edition.published }}{% endif %} · {{ edition.articles | length }} artigo(s)</span>
+        </span>
+      </a>
     </li>
     {% endfor %}
   </ol>

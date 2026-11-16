@@ -1,18 +1,19 @@
-<article class="card">
-  <p class="card-meta">
-    {% if not (in_section | default(false)) %}<span class="tag">{{ article.primary_category_name }}</span>{% endif %}
-    {% if article.is_preprint %}<span class="badge badge-preprint">Preprint</span>{% endif %}
-  </p>
-  <h3 class="card-title"><a href="{{ root }}{{ article.path }}">{{ article.headline }}</a></h3>
-  <p class="card-original"><span class="label">Título original:</span> <cite>{{ article.original_title }}</cite></p>
-  <div class="card-summary">{{ article.summary }}</div>
-  <p class="card-source">
-    {% if article.authors %}{{ article.authors[:3] | join(", ") }}{% if article.authors | length > 3 %} et al.{% endif %}{% endif %}
-    {% if article.journal %} · <em>{{ article.journal }}</em>{% endif %}
-    {% if article.publication_date %} · <time>{{ article.publication_date }}</time>{% endif %}
-  </p>
-  <p class="card-links">
-    <a href="{{ root }}{{ article.path }}">Ler síntese</a>
-    {% if article.source_url %} · <a href="{{ article.source_url }}" rel="noopener noreferrer nofollow">Pesquisa original</a>{% endif %}
-  </p>
+<article class="post" data-category="{{ article.primary_category }}">
+  <div class="post-body">
+    <p class="post-byline">
+      <span class="avatar avatar-sm" style="--h: {{ article.avatar_hue }}" aria-hidden="true">{{ article.author_initials }}</span>
+      <span class="post-author">{% if article.authors %}{{ article.authors[0] }}{% if article.authors | length > 1 %} e outros{% endif %}{% else %}Autoria não informada{% endif %}</span>
+      {% if article.journal %}<span class="post-in">em <strong>{{ article.journal }}</strong></span>{% endif %}
+    </p>
+    <h3 class="post-title"><a href="{{ root }}{{ article.path }}">{{ article.headline }}</a></h3>
+    <div class="post-excerpt">{{ article.summary }}</div>
+    <p class="post-meta">
+      {% if not (in_section | default(false)) %}<span class="chip cat-{{ article.primary_category }}">{{ article.primary_category_name }}</span>{% endif %}
+      {% if article.is_preprint %}<span class="chip chip-warn">Preprint</span>{% endif %}
+      {% if article.publication_date %}<time>{{ article.publication_date }}</time><span aria-hidden="true">·</span>{% endif %}
+      <span>{{ article.reading_minutes }} min de leitura</span>
+      {% if article.source_url %}<a class="post-source" href="{{ article.source_url }}" rel="noopener noreferrer nofollow">Pesquisa original ↗</a>{% endif %}
+    </p>
+  </div>
+  <a class="thumb cat-{{ article.primary_category }}" href="{{ root }}{{ article.path }}" tabindex="-1" aria-hidden="true" style="--seed: {{ article.avatar_hue }}deg"><span>{{ article.primary_category_name[:1] }}</span></a>
 </article>

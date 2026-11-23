@@ -1,0 +1,154 @@
+{
+  "run_id": "8af9c7c5affb",
+  "status": "partial_success",
+  "started_at": "2026-11-23T22:19:44+00:00",
+  "duration_seconds": 2784.43,
+  "parameters": {
+    "days": 7,
+    "sources": [
+      "openalex",
+      "pubmed",
+      "arxiv",
+      "crossref"
+    ],
+    "max_articles": null,
+    "generation_limit": 10,
+    "steps": [
+      "collect",
+      "enrich",
+      "classify",
+      "score",
+      "curate",
+      "generate"
+    ],
+    "trigger": "schedule",
+    "start_date": null,
+    "end_date": null
+  },
+  "stats": {
+    "sources_consulted": [
+      "openalex",
+      "pubmed",
+      "arxiv",
+      "crossref"
+    ],
+    "collection_window": [
+      "2026-11-16",
+      "2026-11-23"
+    ],
+    "articles_found": 389,
+    "articles_new": 375,
+    "articles_duplicate": 14,
+    "possible_duplicates": 1,
+    "collection_errors": 0,
+    "failed_sources": [],
+    "per_source": [
+      {
+        "source": "openalex",
+        "collected": 100,
+        "inserted": 98,
+        "updated": 1,
+        "ignored": 1,
+        "flagged_duplicates": 1,
+        "invalid": 0,
+        "requests": 8,
+        "errors": []
+      },
+      {
+        "source": "pubmed",
+        "collected": 94,
+        "inserted": 92,
+        "updated": 1,
+        "ignored": 1,
+        "flagged_duplicates": 0,
+        "invalid": 0,
+        "requests": 6,
+        "errors": []
+      },
+      {
+        "source": "arxiv",
+        "collected": 97,
+        "inserted": 97,
+        "updated": 0,
+        "ignored": 0,
+        "flagged_duplicates": 0,
+        "invalid": 0,
+        "requests": 5,
+        "errors": []
+      },
+      {
+        "source": "crossref",
+        "collected": 98,
+        "inserted": 88,
+        "updated": 0,
+        "ignored": 10,
+        "flagged_duplicates": 0,
+        "invalid": 0,
+        "requests": 5,
+        "errors": []
+      }
+    ],
+    "crossref_checked": 50,
+    "crossref_confirmed": 1,
+    "articles_classified": 343,
+    "articles_without_category": 151,
+    "classification_uncertain": 46,
+    "articles_scored": 375,
+    "curation_triaged": 100,
+    "curated": 12,
+    "curation_decisions": {
+      "publish": 5,
+      "priority": 1,
+      "reject": 6
+    },
+    "curation_rejected": 6,
+    "curation_approved": 6,
+    "curation_explanations": {
+      "110": "PUBLICAR (77.6)\nNota 78: publicar.\nIA: A pesquisa merece publicação por apresentar uma demonstração intrigante das conexões entre a microbiota intestinal e a progressão de marcadores do Alzheimer em moscas-da-fruta. O estudo fundamenta bem as alterações moleculares e comportamentais causadas pela depleção bacteriana, alinhando-se aos princípios da UFABC Science de despertar curiosidade com rigor. Contudo, a matéria deve enfatizar que se trata de um experimento em modelo animal (Drosophila), sem desdobramentos clínicos diretos comprovados para humanos.\nTriagem: curiosidade 81 (Demonstra como perturbações no microbioma intestinal podem agravar a patologia do Alzheimer.).\nPotencial de curiosidade: 82 — A ideia de que a ausência de bactérias intestinais pode piorar diretamente os sintomas de Alzheimer em um organismo-modelo desperta forte curiosidade no público geral.\nRelevância científica: 80 — Estudo publicado em periódico revisado por pares (Gut Microbes), mapeando vias moleculares e celulares de neuroinflamação e proteostase ligadas a células gliais.\nGrau de novidade: 75 — Explora especificamente a influência da depleção microbiótica sobre a patologia mediada por glia em modelos transgenicos de Drosophila.\nPotencial de impacto: 70 — Aprofunda a compreensão teórica do eixo intestino-cérebro, embora os achados em invertebrados estejam distantes de aplicações clínicas imediatas.\nQualidade das evidências: 75 — Trabalho revisado por pares com amostragem experimental detalhada, limitando-se ao uso de moscas-da-fruta como organismo-modelo.",
+      "155": "PRIORIDADE MÁXIMA (85.0)\nNota 85: prioridade máxima.\nIA: O estudo deve ser aceito para publicação pois revela uma crise silenciosa de extinção no oceano profundo com alto potencial de fascinar e alertar o leitor da UFABC Science. A pesquisa combina rigor metodológico extraordinário (série temporal de 12 anos na Nature Communications) com uma narrativa impactante que desconstrói o mito da estabilidade da vida mesopelágica.\nTriagem: curiosidade 84 (Revela riscos ocultos de extinção no oceano profundo por meio de dados genômicos.).\nPotencial de curiosidade: 82 — A descoberta de que o oceano profundo, frequentemente visto como um ambiente remoto e isolado, enfrenta um colapso genético acelerado desafia o senso comum e desperta interesse direto sobre o alcance oculto das mudanças climáticas.\nRelevância científica: 88 — Utiliza uma das maiores séries temporais genômicas da fauna mesopelágica na história oceanográfica, integrando genômica de populações e modelagem ecológica.\nGrau de novidade: 85 — Contesta diretamente a premissa de estabilidade e resiliência dos ecossistemas mesopelágicos, fornecendo os primeiros indicadores genômicos de declínio acelerado na região.\nPotencial de impacto: 83 — Pode redefinir estratégias globais de conservação marinha e políticas de proteção da zona mesopelágica frente ao avanço das mudanças climáticas.\nQualidade das evidências: 90 — Estudo revisado por pares e publicado na Nature Communications, sustentado por dados empíricos coletados ao longo de 12 anos (2011-2023).",
+      "317": "REJEITAR (71.0)\nRejeitado: específico demais e sem implicações interessantes.\nIA: Apesar do rigor técnico e da publicação em um periódico respeitado de robótica, o trabalho é uma contribuição focada em engenharia e algoritmos de navegação de robôs. Falta-lhe o elemento de surpresa ou curiosidade ampla exigido pela linha editorial da UFABC Science para atrair leitores não especializados.\nTriagem: curiosidade 62 (Sistema de inteligência artificial que estima o atrito visualmente para robôs em terrenos acidentados.).\nPotencial de curiosidade: 60 — Embora a navegação autônoma em terrenos acidentados seja um tema interessante, a abordagem de estimação de atrito por modelo neuro-simbólico é bastante técnica e de apelo limitado para o leitor leigo.\nRelevância científica: 78 — A pesquisa oferece uma solução metodológica para a modelagem não linear da interação entre veículos e terrenos sem superajuste, publicada em periódico revisado por pares.\nGrau de novidade: 75 — Integra percepção visual neural com raciocínio físico simbólico via otimização em dois níveis (imperative learning) para estimar atrito em tempo real.\nPotencial de impacto: 70 — Possui potencial para aprimorar robôs de exploração planetária e veículos de resposta a desastres, embora permaneça restrito ao campo da robótica de campo.\nQualidade das evidências: 80 — Estudo revisado por pares publicado no The International Journal of Robotics Research com validações em simulação e testes com plataformas robóticas reais; limitações metodológicas detalhadas não foram totalmente descritas na fonte além dos testes com veículos de quatro rodas.",
+      "448": "PUBLICAR (80.8)\nNota 81: publicar.\nIA: A pesquisa apresenta uma aplicação inovadora de nanotecnologia no mapeamento molecular da doença de Alzheimer, atingindo alto nível de curiosidade e relevância científica. Por ser uma demonstração de conceito robusta e revisada por pares, atende aos critérios editoriais da UFABC Science para se transformar em matéria acessível e instigante. O trabalho conecta nanomateriais, proteômica e neurociência de forma clara e rigorosa.\nTriagem: curiosidade 77 (Uso de nanomateriais bidimensionais para diagnosticar e perfila o Alzheimer no sangue.).\nPotencial de curiosidade: 80 — A ideia de utilizar nanomateriais 2D para capturar uma 'assinatura' de proteínas no sangue e mapear o Alzheimer é surpreendente e desperta grande interesse do público leigo.\nRelevância científica: 82 — O estudo analisa o perfil de 1.611 proteínas plasmáticas sem fracionamento prévio, oferecendo evidências sólidas sobre alterações moleculares na doença de Alzheimer.\nGrau de novidade: 83 — Propõe o uso inovador de biointerfaces baseadas em MXene para triagem e perfilamento molecular em neurodegeneração.\nPotencial de impacto: 78 — Abre caminho para novas tecnologias de diagnóstico menos invasivas baseadas em biomarcadores sanguíneos, embora ainda exija validações subsequentes.\nQualidade das evidências: 80 — Trabalho publicado em periódico revisado por pares (ACS Applied Bio Materials) com caracterização físico-química e proteômica detalhada.",
+      "492": "PUBLICAR (80.0)\nNota 80: publicar.\nIA: A pesquisa apresenta um conceito altamente instigante e inovador ao expandir a inspiração biológica da IA para além dos neurônios, utilizando astrócitos para resolver gargalos clássicos do aprendizado de máquina. Embora seja um preprint que necessita ressalva quanto à ausência de revisão por pares, seu forte apelo de curiosidade e relevância na interseção entre neurociência e IA justificam sua publicação na UFABC Science.\nTriagem: curiosidade 86 (Propõe que células gliais sem sinais elétricos atuam como maestras no processamento cerebral.).\nPotencial de curiosidade: 88 — A ideia de inspirar a IA em células cerebrais que não emitem sinais elétricos (astrócitos), em vez de apenas neurônios, desafia o senso comum e provoca curiosidade imediata.\nRelevância científica: 78 — Apresenta uma contribuição teórica e computacional bem estruturada para a área de aprendizado inspirado em biologia, abordando limitações conhecidas das redes neurais.\nGrau de novidade: 85 — Desvia do paradigma estritamente neurocêntrico dominante no aprendizado de máquina ao traduzir dinâmicas de astrócitos em algoritmos computacionais funcionais.\nPotencial de impacto: 75 — Possui potencial para influenciar o desenvolvimento de novas arquiteturas de IA mais robustas a ruídos e capazes de evitar o esquecimento catastrófico.\nQualidade das evidências: 58 — Trata-se de um estudo computacional disponibilizado como preprint no arXiv, portanto ainda não submetido ou aprovado em processo formal de revisão por pares.",
+      "556": "REJEITAR (66.0)\nRejeitado: específico demais e sem implicações interessantes.\nIA: Apesar de ser um trabalho teoricamente sólido e publicado em periódico especializado revisado por pares, o artigo foca em detalhes muito específicos da modelagem física de ignição de plasma para motores de satélite. Falta o fator surpresa ou o impacto imediato necessário para despertar a curiosidade de um público amplo não especialista. Dessa forma, a matéria não atinge o limiar de relevância e apelo editorial da UFABC Science.\nTriagem: curiosidade 55 (Modelagem de motores elétricos de satélite que usam gases da própria atmosfera terrestre.).\nPotencial de curiosidade: 50 — O tema de propulsão espacial é interessante, mas a abordagem é focada em parâmetros técnicos de plasma e equações de ignição de nicho, com baixo potencial de apelo direto para leitores não especialistas.\nRelevância científica: 75 — A pesquisa entrega um modelo numérico temporal e zero-dimensional bem estruturado para descrever a composição e as reações do plasma no propulsor ABEP.\nGrau de novidade: 70 — Apresenta mapeamentos da transição entre íons moleculares e atômicos e prova que o argônio não serve como substituto adequado para simular o oxigênio atômico.\nPotencial de impacto: 65 — Oferece leis de aproximação que ajudam no diagnóstico de testes laboratoriais de satélites VLEO, embora seja uma contribuição metodológica focada no desenvolvimento do setor.\nQualidade das evidências: 85 — Estudo computacional publicado em periódico com revisão por pares verificada; contudo, trata-se de um modelo simplificado de dimensão zero (0D) com limitações inerentes de simulação.",
+      "661": "REJEITAR (64.5)\nRejeitado: específico demais e sem implicações interessantes.\nIA: A pesquisa é metodologicamente bem conduzida e traz contribuições válidas para a neurologia comportamental, demonstrando o papel da conscienciosidade na perda de independência em pacientes com demência frontotemporal. Contudo, o tema é excessivamente específico e técnico para o público geral da UFABC Science, sem despertar um nível elevado de curiosidade ampla. Portanto, o trabalho não é recomendado para publicação.\nTriagem: curiosidade 68 (Relaciona mudanças de personalidade e perda de autonomia em pacientes com demência.).\nPotencial de curiosidade: 58 — Embora a correlação entre demência e alterações de personalidade seja importante clinicamente, o achado de que traços atuais afetam o funcionamento diário é esperado e muito específico.\nRelevância científica: 75 — Estudo publicado na Neurology com 111 pacientes, trazendo rigor estatístico com correção para múltiplas comparações e refinando a avaliação clínica da demência frontotemporal.\nGrau de novidade: 62 — Traz uma quantificação precisa da contribuição da personalidade atual sobre a funcionalidade além de fatores demográficos, mas baseia-se em conceitos neuropsicológicos já conhecidos.\nPotencial de impacto: 60 — Pode auxiliar clínicos a entenderem o risco funcional e personalizar o suporte a pacientes com essa demência específica, mas tem impacto limitado fora da prática neurológica especializada.\nQualidade das evidências: 70 — Publicação revisada por pares com amostra bem caracterizada, porém limitada pelo desenho transversal, avaliação retrospectiva da personalidade pré-mórbida e uso do mesmo informante.",
+      "675": "PUBLICAR (82.2)\nNota 82: publicar.\nIA: A pesquisa deve ser publicada pois apresenta um avanço relevante no entendimento neurobiológico da relação entre uso de álcool, ansiedade e depressão. Ao identificar a proteína PPP1R1B e circuitos pré-frontais específicos em camundongos, o trabalho oferece um vislumbre concreto de como a ciência busca desvendar comorbidades psiquiátricas complexas. O rigor metodológico e o apelo do tema justificam a curadoria para a UFABC Science, ressalvando-se a limitação do estudo em modelo animal.\nTriagem: curiosidade 78 (Mapeia circuitos cerebrais que conectam o consumo de álcool a distúrbios emocionais.).\nPotencial de curiosidade: 80 — A descoberta de que o cérebro possui vias separadas para regular o consumo de álcool e os sintomas emocionais associados desperta grande curiosidade no público geral.\nRelevância científica: 85 — Estudo publicado no PNAS utilizando uma combinação abrangente de quimiogenética, eletrofisiologia, proteômica espacial e edição gênica em camundongos.\nGrau de novidade: 82 — Revela a segregação anatômica e funcional de subpopulações pré-frontais e aponta a proteína PPP1R1B como determinante molecular específico nessas vias.\nPotencial de impacto: 80 — Abre caminho para potenciais tratamentos alvos e direcionados para o Transtorno do Uso de Álcool e suas comorbidades afetivas, como ansiedade e depressão.\nQualidade das evidências: 85 — Artigo revisado por pares em periódico de alto impacto, com controle rigoroso de manipulações moleculares e comportamentais em modelo animal.",
+      "697": "REJEITAR (67.2)\nRejeitado: específico demais e sem implicações interessantes.\nIA: Apesar de trazer dados relevantes para a neurologia vascular sobre diferenças de sexo na regulação da pressão arterial pós-trombectomia, a pesquisa é excessivamente técnica e específica para especialistas. Além disso, os próprios autores enfatizam que os resultados são estritamente exploratórios e geradores de hipóteses, não justificando a publicação na UFABC Science.\nTriagem: curiosidade 50 (Análise secundária sobre a variação da pressão arterial por sexo após tratamento de AVC.).\nPotencial de curiosidade: 55 — Embora a diferença de resposta entre sexos a tratamentos seja um tema interessante, o foco em parâmetros pressóricos pós-trombectomia é bastante específico para o leitor leigo.\nRelevância científica: 78 — Estudo publicado em periódico respeitado (Neurology), utilizando dados de um ensaio clínico multicêntrico com 816 pacientes e amostragem rigorosa.\nGrau de novidade: 70 — Identifica uma possível heterogeneidade no efeito do tratamento pressórico dividida por sexo, algo pouco explorado nessa intervenção específica.\nPotencial de impacto: 65 — Os achados são explicitamente geradores de hipóteses e dependem de confirmação prospectiva antes de poderem alterar diretrizes clínicas.\nQualidade das evidências: 75 — Dados oriundos de ensaio randomizado revisado por pares, porém com limitação metodológica de ser uma análise secundária pós-randomização.",
+      "1035": "PUBLICAR (83.6)\nNota 84: publicar.\nIA: O estudo publicado na PNAS oferece uma fundação teórica inovadora para a área de inteligência artificial, demonstrando que equipes de LLMs obedecem às leis da computação distribuída. Ao substituir o método empírico de tentativa e erro por predições quantitativas e formais, a pesquisa apresenta alto rigor científico e grande potencial de impacto. O tema é altamente relevante e fascinante para o público da UFABC Science.\nTriagem: curiosidade 82 (Conceito inovador que aborda equipes de inteligência artificial como sistemas distribuídos.).\nPotencial de curiosidade: 76 — Desperta curiosidade ao revelar que grupos de IAs se comportam de maneira previsível segundo regras clássicas da computação distribuída, evitando o design por tentativa e erro.\nRelevância científica: 90 — Estudo publicado na PNAS com revisão por pares que estabelece uma base teórica formal validada empiricamente para o comportamento de equipes de LLMs.\nGrau de novidade: 85 — Propõe pela primeira vez a computação distribuída como arcabouço formal e quantitativo para prever o desempenho e as vulnerabilidades de equipes de agentes de IA.\nPotencial de impacto: 82 — Oferece diretrizes fundamentais para a criação de sistemas de IA multiagentes mais eficientes, robustos e capazes em larga escala.\nQualidade das evidências: 90 — Artigo científico revisado por pares em periódico de alto impacto (PNAS), respaldado por evidências empíricas.",
+      "1093": "REJEITAR (59.5)\nRejeitado: específico demais e sem implicações interessantes.\nIA: A pesquisa apresenta uma análise técnica válida sobre o uso do satélite TESS para rastrear variabilidade em candidatos a buracos negros de massa intermediária. No entanto, por se tratar de um estudo preliminar publicado como preprint e focado em detalhes metodológicos de análise fotométrica, o tema é específico demais e não possui o apelo de curiosidade necessário para o público geral da UFABC Science.\nTriagem: curiosidade 65 (Busca por evidências ópticas de buracos negros de massa intermediária.).\nPotencial de curiosidade: 60 — Embora a busca por buracos negros de massa intermediária desperte algum interesse público, o foco da pesquisa é predominantemente técnico sobre métricas de curva de luz e fotometria.\nRelevância científica: 65 — O estudo contribui para a astrofísica ao avaliar a utilidade do TESS na detecção de variabilidade em AGNs, mas traz conclusões ainda preliminares e uma correlação apenas tentativa.\nGrau de novidade: 60 — Aplica pipelines conhecidos (Quaver e modelos DRW) a dados do TESS para um nicho específico, caracterizando um avanço incremental na análise de variabilidade.\nPotencial de impacto: 55 — Mapeia limitações e potenciais do TESS para a astronomia de IMBHs, mas não altera de forma drástica os modelos teóricos existentes sobre esses objetos.\nQualidade das evidências: 50 — Trata-se de um preprint sem revisão por pares, com limitações metodológicas citadas no próprio texto, como artefatos instrumentais do TESS e ruído de observação.",
+      "1173": "REJEITAR (62.4)\nRejeitado: específico demais e sem implicações interessantes.\nIA: Apesar de ser um trabalho tecnicamente sólido e publicado em um periódico respeitado na área de engenharia aeroespacial, a pesquisa é excessivamente específica sobre estratégias de controle e algoritmos de guiagem para entrada atmosférica. Ela não apresenta um elemento de curiosidade ampla ou uma descoberta surpreendente que desperte o interesse da comunidade universitária não especializada. Portanto, não preenche os critérios editoriais da UFABC Science.\nTriagem: curiosidade 58 (Estudo de simulação sobre técnicas de controle de trajetória para navegação em Marte.).\nPotencial de curiosidade: 45 — O estudo é extremamente técnico, focado em detalhes de algoritmos de orientação de entrada atmosférica, com pouco apelo direto ou surpresa para leitores não especializados.\nRelevância científica: 75 — Trabalho científico relevante publicado em periódico reconhecido, oferecendo dados computacionais rigorosos via simulações de Monte Carlo para engenharia aeroespacial.\nGrau de novidade: 60 — Trata-se de uma análise comparativa e otimização de estratégias de guiagem conhecidas aplicada a cenários de entrada de grande velocidade.\nPotencial de impacto: 62 — Pode influenciar o projeto de engenharia de futuras missões robóticas para Marte, mas possui impacto limitado ao nicho de trajetória e controle de espaçonaves.\nQualidade das evidências: 88 — Estudo publicado em periódico revisado por pares com metodologia de simulação computacional detalhada."
+    },
+    "ai_provider": "openai_compatible",
+    "articles_selected": 10,
+    "contents_generated": 1,
+    "verification_passed": 0,
+    "verification_warning": 1,
+    "verification_failed": 0,
+    "generation_skipped": {
+      "aguardando_curadoria": 1174,
+      "informacao_insuficiente": 48,
+      "ja_aprovado": 6,
+      "rejeitado_pela_curadoria": 14
+    },
+    "markdown_files": [
+      "persist/data/editorial/pending/article-448.md"
+    ]
+  },
+  "errors": [
+    "triagem do lote 1: Provedor indisponível: HTTP 503",
+    "triagem do lote 2: Provedor indisponível: HTTP 503",
+    "triagem do lote 3: Provedor indisponível: HTTP 503",
+    "artigo 1014: Provedor indisponível: HTTP 429",
+    "artigo 1063: Resposta não é JSON válido: Expecting ',' delimiter: line 1 column 1466 (char 1465)",
+    "artigo 1020: Provedor indisponível: HTTP 429",
+    "artigo 155: Provedor indisponível: HTTP 429",
+    "artigo 1035: Provedor indisponível: HTTP 429",
+    "artigo 279: Provedor indisponível: HTTP 429",
+    "artigo 675: Provedor indisponível: HTTP 429",
+    "artigo 112: Provedor indisponível: HTTP 429",
+    "artigo 492: Provedor indisponível: HTTP 429",
+    "artigo 110: Provedor indisponível: HTTP 429",
+    "artigo 423: Provedor indisponível: HTTP 429",
+    "artigo 645: Provedor indisponível: HTTP 429"
+  ],
+  "messages": []
+}

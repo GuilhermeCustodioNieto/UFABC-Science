@@ -1,0 +1,153 @@
+{
+  "run_id": "e1daa6565ad1",
+  "status": "partial_success",
+  "started_at": "2026-11-25T13:57:34+00:00",
+  "duration_seconds": 1650.08,
+  "parameters": {
+    "days": 7,
+    "sources": [
+      "openalex",
+      "pubmed",
+      "arxiv",
+      "crossref"
+    ],
+    "max_articles": null,
+    "generation_limit": 10,
+    "steps": [
+      "collect",
+      "enrich",
+      "classify",
+      "score",
+      "curate",
+      "generate"
+    ],
+    "trigger": "workflow_dispatch",
+    "start_date": null,
+    "end_date": null
+  },
+  "stats": {
+    "sources_consulted": [
+      "openalex",
+      "pubmed",
+      "arxiv",
+      "crossref"
+    ],
+    "collection_window": [
+      "2026-11-18",
+      "2026-11-25"
+    ],
+    "articles_found": 390,
+    "articles_new": 242,
+    "articles_duplicate": 148,
+    "possible_duplicates": 1,
+    "collection_errors": 0,
+    "failed_sources": [],
+    "per_source": [
+      {
+        "source": "openalex",
+        "collected": 100,
+        "inserted": 53,
+        "updated": 2,
+        "ignored": 45,
+        "flagged_duplicates": 1,
+        "invalid": 0,
+        "requests": 8,
+        "errors": []
+      },
+      {
+        "source": "pubmed",
+        "collected": 93,
+        "inserted": 37,
+        "updated": 14,
+        "ignored": 42,
+        "flagged_duplicates": 0,
+        "invalid": 0,
+        "requests": 6,
+        "errors": []
+      },
+      {
+        "source": "arxiv",
+        "collected": 98,
+        "inserted": 98,
+        "updated": 0,
+        "ignored": 0,
+        "flagged_duplicates": 0,
+        "invalid": 0,
+        "requests": 5,
+        "errors": []
+      },
+      {
+        "source": "crossref",
+        "collected": 99,
+        "inserted": 54,
+        "updated": 0,
+        "ignored": 45,
+        "flagged_duplicates": 0,
+        "invalid": 0,
+        "requests": 5,
+        "errors": []
+      }
+    ],
+    "crossref_checked": 27,
+    "crossref_confirmed": 1,
+    "articles_classified": 218,
+    "articles_without_category": 175,
+    "classification_uncertain": 42,
+    "articles_scored": 242,
+    "curation_triaged": 100,
+    "curated": 15,
+    "curation_decisions": {
+      "publish": 8,
+      "consider": 1,
+      "priority": 3,
+      "reject": 3
+    },
+    "curation_rejected": 3,
+    "curation_approved": 12,
+    "curation_explanations": {
+      "117": "PUBLICAR (84.7)\nNota 85: publicar.\nIA: A pesquisa merece publicação por revelar uma conexão surpreendente entre neurônios sensoriais de dor e a formação de memória imunológica em vacinas. O artigo combina rigor científico com alto potencial de curiosidade para o leitor leigo, mostrando como sistemas corporais tidos como independentes atuam em conjunto. A única limitação relevante é ter sido testado apenas em camundongos, o que deve ser deixado claro no texto.\nTriagem: curiosidade 87 (Descobre que sinais de dor em neurônios sensoriais regulam diretamente a resposta imune de memória pós-vacinal.).\nPotencial de curiosidade: 88 — A ideia de que a sinalização de dor provocada por neurônios sensoriais ajuda a construir a memória imunológica de uma vacina é surpreendente e contra-intuitiva para o leitor leigo.\nRelevância científica: 85 — O estudo elucida a via mecanística (CGRP-Ramp1 e células de Langerhans) que conecta o sistema nervoso sensorial à imunidade adaptativa, publicado em periódico de alto impacto.\nGrau de novidade: 85 — Revela uma diafonia imuno-neural inédita no contexto de imunização por escarificação cutânea com o vírus da vacínia.\nPotencial de impacto: 80 — Compreender a sinalização CGRP-Ramp1 abre caminhos teóricos para o desenho de adjuvantes ou estratégias que aprimorem a eficácia de vacinas.\nQualidade das evidências: 80 — Estudo experimental rigoroso e revisado por pares em modelo animal (camundongos), com a limitação explícita de ainda não ter sido demonstrado em humanos.",
+      "157": "PRIORIDADE MÁXIMA (87.2)\nNota 87: prioridade máxima.\nIA: A pesquisa deve ser aprovada para publicação por apresentar um avanço fundamental no mapeamento epigenético do cérebro humano em nível de célula única. Ao integrar dados de 18 regiões cerebrais e construir um modelo preditivo de variantes genéticas associadas a doenças, o trabalho combina alto rigor acadêmico com excelente potencial para explicar como o genoma controla a função e as patologias cerebrais. A abordagem atende perfeitamente ao perfil da UFABC Science de trazer descobertas transformadoras de forma acessível.\nTriagem: curiosidade 86 (Mapeamento celular e epigenético inédito que revela programas regulatórios em 18 regiões do cérebro humano.).\nPotencial de curiosidade: 78 — A possibilidade de mapear a 'memória epigenética' do cérebro humano em 18 regiões e prever o efeito de alterações genéticas em células específicas desperta grande interesse no público curioso.\nRelevância científica: 95 — Trabalho publicado na Cell com rigoroso perfil multiômico em mais de 750 mil núcleos celulares, integrando modificações de histonas, metilação do DNA e arquitetura 3D do genoma.\nGrau de novidade: 88 — Fornece a primeira medição direta e integrada de estados de cromatina ativa e repressiva em célula única em grande escala para o cérebro humano adulto.\nPotencial de impacto: 90 — Estabelece um recurso de referência para decifrar a regulação gênica cerebral e os mecanismos moleculares subjacentes a diversas doenças neurológicas.\nQualidade das evidências: 90 — Estudo publicado em periódico de alto impacto com revisão por pares verificada e conjunto robusto de dados integrados de 160 tipos celulares.",
+      "549": "PRIORIDADE MÁXIMA (88.0)\nNota 88: prioridade máxima.\nIA: A pesquisa merece publicação na UFABC Science por responder de forma rigorosa a uma controvérsia científica de enorme apelo público: a veracidade da imagem do buraco negro M87*. Ao utilizar um algoritmo independente e livre de premissas prévias, os autores confirmaram inequivocamente a morfologia em anel do objeto. A publicação na revista Nature garante excelência metodológica, combinando alto apelo de curiosidade e relevância científica.\nTriagem: curiosidade 88 (Confirmação independente e direta da histórica observação da sombra do buraco negro supermassivo M87*.).\nPotencial de curiosidade: 88 — A visualização de buracos negros e a resolução de controvérsias sobre a primeira imagem da história da astronomia despertam grande fascínio no público geral.\nRelevância científica: 92 — O estudo resolve incertezas metodológicas anteriores e valida independentemente a morfologia do M87*, em trabalho publicado na revista Nature.\nGrau de novidade: 82 — Apresenta um método de reconstrução de imagens interferométricas livre de premissas morfológicas prévias e imune a erros de calibração instrumental.\nPotencial de impacto: 85 — Fortalece as bases da astrofísica observacional e valida dados fundamentais sobre a massa e estrutura de buracos negros supermassivos.\nQualidade das evidências: 95 — Trabalho publicado e verificado por pares no periódico Nature, utilizando observables imunes a erros de calibração conhecidos.",
+      "615": "PUBLICAR (77.0)\nNota 77: publicar.\nIA: A pesquisa merece ser transformada em matéria por apresentar uma descoberta altamente provocativa e contraintuitiva: limitar as informações de um modelo de linguagem pode torná-lo mais criativo ao libertá-lo de conceitos pré-concebidos. O artigo aborda um tema de interesse amplo de maneira inovadora em relação ao dogma atual da IA. Como se trata de um preprint publicado no arXiv, a matéria deve explicitar aos leitores que a pesquisa ainda não passou por revisão por pares.\nTriagem: curiosidade 84 (Revela que modelos de IA propositalmente sem conhecimento especialista prévio conseguem propor ideias mais criativas.).\nPotencial de curiosidade: 85 — A ideia contraintuitiva de que fornecer menos informação a uma inteligência artificial pode tornar a geração de ideias mais criativa desperta forte fascínio e curiosidade no público geral.\nRelevância científica: 72 — O trabalho realiza testes experimentais com modelos de 1B e 7B parâmetros, propondo uma nova abordagem metodológica para o uso de LLMs na resolução de problemas.\nGrau de novidade: 83 — Desafia o paradigma dominante de escalar volumes massivos de dados ao propor o esquecimento ou a privação intencional de informação como catalisador de inovação.\nPotencial de impacto: 73 — Possui potencial para influenciar como ferramentas de inteligência artificial são estruturadas para ideação criativa, inovação tecnológica e descoberta científica.\nQualidade das evidências: 60 — O estudo é um preprint hospedado no arXiv que ainda não passou pelo processo formal de revisão por pares.",
+      "649": "PUBLICAR (80.0)\nNota 80: publicar.\nIA: A pesquisa apresenta relevante avanço pré-clínico ao demonstrar como o composto WY6 inibe o crescimento tumoral ao bloquear a acetilação da proteína ZEB1 e atuar sinergicamente com a imunoterapia. Com publicação revisada por pares na PNAS e dados bem fundamentados, o trabalho possui apelo científico e potencial de interesse para o público leigo curioso sobre novos tratamentos de câncer.\nTriagem: curiosidade 85 (Descobre que bloquear a interação p300-ZEB1 previne o câncer e estimula a resposta imune contra tumores.).\nPotencial de curiosidade: 72 — A estratégia de desestabilizar proteínas oncogênicas por meio do bloqueio de interações específicas sem causar alta toxicidade é um conceito instigante para leitores interessados em avanços médicos.\nRelevância científica: 85 — Estudo robusto publicado na PNAS que detalha o mecanismo molecular da acetilação no resíduo K80 da ZEB1 e valida uma nova molécula terapêutica.\nGrau de novidade: 80 — Identificação inédita do composto WY6, direcionado ao domínio TAZ2 da p300 para induzir a ubiquitinação e degradação da ZEB1.\nPotencial de impacto: 82 — Apresenta potencial promissor para o desenvolvimento de novas terapias alvos e tratamentos combinados com imunoterapia contra cânceres agressivos.\nQualidade das evidências: 88 — Pesquisa revisada por pares com sólida demonstração mecanística em linhagens celulares e testes in vivo em modelos animais.",
+      "695": "REJEITAR (71.8)\nRejeitado: específico demais e sem implicações interessantes.\nIA: Embora o trabalho apresente rigor acadêmico e relevância clínica comprovada em um estudo longitudinal com 501 participantes, o tema é bastante específico para o campo do diagnóstico neurológico. Falta a esta pesquisa o apelo de curiosidade geral ou um fator de surpresa transformador exigido para virar matéria na UFABC Science.\nTriagem: curiosidade 84 (Avanço promissor no uso de biomarcador sanguíneo para prever o declínio cognitivo na demência por corpos de Lewy.).\nPotencial de curiosidade: 60 — O uso de um exame de sangue para prever a progressão de uma doença neurodegenerativa é de interesse médico, mas tem um caráter predominantemente técnico e clínico para o público geral.\nRelevância científica: 82 — Estudo prospectivo longitudinal bem estruturado, com 501 participantes acompanhados por até 8 anos e publicado no periódico revisado por pares Neurology.\nGrau de novidade: 70 — Demonstra a utilidade prognóstica e de monitoramento do pTau217 especificamente na doença de Corpos de Lewy, expandindo conhecimentos anteriores centrados na doença de Alzheimer.\nPotencial de impacto: 75 — Possui potencial para aprimorar a estratificação de pacientes em ensaios clínicos e orientar o acompanhamento de demências com patologia mista.\nQualidade das evidências: 80 — Artigo de periódico com revisão por pares comprovada e desenho prospectivo; as limitações metodológicas detalhadas não foram informadas no resumo fornecido.",
+      "901": "REJEITAR (70.3)\nRejeitado: específico demais e sem implicações interessantes.\nIA: O estudo é tecnicamente muito bem fundamentado e publicado em periódico respeitado, mas foca em modelos computacionais e previsões teóricas de parâmetros espectrais altamente especializados. Falta um achado observacional transformador ou de apelo direto para o público não especialista da UFABC Science.\nTriagem: curiosidade 88 (Uso de sequência de imagens do buraco negro M87* para analisar elétrons relativísticos e campos magnéticos.).\nPotencial de curiosidade: 62 — Embora buracos negros como o M87* despertem curiosidade natural, o trabalho lida especificamente com simulações de mapas de índice espectral e modelos de elétrons, conceitos bastante abstratos e técnicos para o público geral.\nRelevância científica: 78 — Pesquisa sólida publicada no Monthly Notices of the Royal Astronomical Society, fornecendo sustentação teórica e computacional para interpretar dados do Event Horizon Telescope (EHT).\nGrau de novidade: 70 — Amplia estudos anteriores para uma faixa de frequência maior e analisa de forma sistemática a evolução temporal do índice espectral sob diferentes modelos de elétrons.\nPotencial de impacto: 65 — Oferece restrições preliminares para modelos teóricos de spin e propriedades de plasma em buracos negros, afetando principalmente especialistas da astrofísica de altas energias.\nQualidade das evidências: 85 — Trabalho teórico e computacional rigoroso publicado em periódico de prestígio com revisão por pares, utilizando simulações de magnetoidrodinâmica em relatividade geral.",
+      "946": "PUBLICAR (84.3)\nNota 84: publicar.\nIA: A pesquisa merece ser publicada na UFABC Science por apresentar evidências rigorosas sobre como sistemas de IA generativa afetam o mercado de trabalho real. Ao combinar inteligência artificial, economia e sociologia, o estudo demonstra de forma acessível que a automação do recrutamento pode reforçar a desigualdade de gênero por múltiplos canais. O artigo reúne relevância científica, alto apelo público e fonte de grande prestígio (PNAS).\nTriagem: curiosidade 85 (Demonstra como modelos de IA geram currículos com estereótipos de gênero e introduzem viés na seleção profissional.).\nPotencial de curiosidade: 82 — O achado de que a IA pode penalizar ou favorecer candidatos com base no gênero e influenciar recomendações salariais é altamente intuitivo e desperta forte interesse do público geral.\nRelevância científica: 88 — Pesquisa metodologicamente sólida publicada no PNAS, utilizando experimentos de auditoria com atribuição aleatória para isolar o viés sistemático dos LLMs.\nGrau de novidade: 80 — Identifica e distingue quantitativamente dois mecanismos distintos de amplificação algorítmica (viés de geração de currículos e viés de avaliação da candidatura).\nPotencial de impacto: 85 — Possui alto potencial de impactar regulações sobre o uso de IA em processos seletivos e no desenvolvimento de ferramentas corporativas de recrutamento.\nQualidade das evidências: 90 — Estudo revisado por pares publicado em periódico de alto impacto (PNAS), com desenho experimental controlado.",
+      "1038": "PUBLICAR (83.6)\nNota 84: publicar.\nIA: A pesquisa merece virar matéria por apresentar uma solução tecnológica altamente inovadora (nanomedicamento ativado por estresse oxidativo) para um desafio central no tratamento do Alzheimer: a entrega de fármacos no cérebro com redução de efeitos colaterais. O trabalho possui rigor científico comprovado por publicação na PNAS e desperta forte curiosidade no leitor. Por se tratar de um estudo em camundongos, a matéria deve explicitar claramente o estágio pré-clínico da descoberta sem gerar falsas expectativas clínicas.\nTriagem: curiosidade 85 (Trabalho mostra que a aplicação intranasal de um inibidor reduz sintomas e alterações cerebrais associadas ao Alzheimer.).\nPotencial de curiosidade: 82 — A ideia de usar um nanomedicamento ativado sob demanda apenas em áreas inflamadas do cérebro para reverter a perda de memória desperta grande curiosidade no público geral.\nRelevância científica: 88 — O estudo publicado na PNAS combina validação genética, desenvolvimento de nanocarreadores responsivos e transcriptômica de RNA para demonstrar a eficácia do alvo terapêutico MPO.\nGrau de novidade: 85 — Traz uma estratégia inédita de liberação direcionada de fármacos ativada pelo estresse oxidativo no microambiente da doença de Alzheimer via administração intranasal.\nPotencial de impacto: 80 — Apresenta alto potencial para orientar o desenvolvimento de novas terapias para o Alzheimer e outras patologias neuroinflamatórias, embora ainda dependa de validação em humanos.\nQualidade das evidências: 80 — Trabalho consistente e revisado por pares em periódico de alto impacto, com a limitação explícita de ter sido realizado exclusivamente em modelos animais (camundongos 5XFAD).",
+      "1039": "PUBLICAR (84.1)\nNota 84: publicar.\nIA: A pesquisa merece publicação por apresentar um achado surpreendente sobre a natureza social da memória autobiográfica, combinando psicologia e sociologia com análise computacional. Publicado na PNAS, o artigo possui alto rigor científico e engaja a curiosidade do leitor ao mostrar como nossas lembranças mais pessoais são moldadas por roteiros socioculturais comuns.\nTriagem: curiosidade 90 (Revela como a música atua como gatilho sociocultural para acessar a memória autobiográfica e a identidade.).\nPotencial de curiosidade: 85 — A descoberta de que lembranças pessoais íntimas ativadas por músicas seguem padrões culturais compartilhados é altamente intrigante para o público geral.\nRelevância científica: 88 — Trabalho empírico publicado na PNAS com metodologia sólida, amostras adequadas e dois grupos de controle para isolar o efeito do conteúdo das letras.\nGrau de novidade: 82 — Utiliza processamento de linguagem natural para demonstrar quantitativamente a convergência intersubjetiva em memórias autobiográficas.\nPotencial de impacto: 78 — Oferece novas perspectivas sobre como a cultura e os artefatos socioculturais moldam a cognição e a construção da identidade individual.\nQualidade das evidências: 85 — Artigo revisado por pares em periódico de alto prestígio com rigor experimental, apresentando como limitação o uso de amostra universitária.",
+      "1244": "AVALIAR SE HOUVER ESPAÇO (74.8)\nNota 75: avaliar se houver espaço.\nIA: A pesquisa merece publicação por apresentar uma abordagem inovadora sobre o eixo microbioma-intestino-cérebro aplicada à esquizofrenia. Embora os resultados em camundongos sejam preliminares e geradores de hipóteses, a combinação de imunologia e neurociência oferece alto valor educativo e desperta a curiosidade do leitor, respeitando os critérios editoriais da UFABC Science.\nTriagem: curiosidade 89 (Identifica bactérias do intestino associadas à esquizofrenia capazes de induzir alterações comportamentais.).\nPotencial de curiosidade: 78 — A premissa de que bactérias selecionadas pela imunidade intestinal possam influenciar comportamentos associados a transtornos psiquiátricos em camundongos desperta forte interesse sobre a ligação intestino-cérebro.\nRelevância científica: 76 — Trabalho publicado no periódico revisado por pares mSystems, empregando modelos animais germ-free e SPF para investigar a imunidade de mucosa na esquizofrenia.\nGrau de novidade: 75 — Utiliza a triagem IgA-Seq especificamente para isolar e cultivar consórcios bacterianos derivados de pacientes com esquizofrenia antes da avaliação neurocomportamental em animais.\nPotencial de impacto: 68 — Oferece um modelo para gerar novas hipóteses sobre interações entre microbiota e sistema imune na psiquiatria, porém sem aplicação clínica ou diagnóstica imediata.\nQualidade das evidências: 72 — Artigo revisado por pares com metodologia detalhada, assumindo de forma transparente que a causalidade direta por cepas bacterianas individuais ainda não foi comprovada.",
+      "1304": "REJEITAR (66.2)\nRejeitado: específico demais e sem implicações interessantes.\nIA: A pesquisa relata apenas uma detecção tentativa de sulfeto de ferro gasoso no disco Orion SrcI, necessitando de confirmação futura. Os próprios autores apontam que os dados são insuficientes para determinar o papel da molécula na composição de nuvens moleculares. Trata-se de um avanço técnico e incremental de astroquímica, específico demais para o perfil editorial da UFABC Science.\nTriagem: curiosidade 85 (Detecção de sulfeto de ferro no espaço, um composto precursor de reações metabólicas chave para a astrobiologia.).\nPotencial de curiosidade: 58 — A detecção tentativa de sulfeto de ferro gasoso no espaço é um tema técnico que desperta pouco apelo intuitivo para leitores não especialistas.\nRelevância científica: 75 — Estudo publicado em periódico de alto impacto (The Astronomical Journal) com contribuição relevante para a astroquímica de grãos e meio interestelar.\nGrau de novidade: 75 — Trata-se da primeira sinalização observacional de FeS gasoso no meio interestelar, embora ainda pendente de confirmação.\nPotencial de impacto: 55 — Os dados ainda não permitem concluir se o FeS é um reservatório primário de enxofre ou ferro, limitando seu impacto prático e teórico imediato.\nQualidade das evidências: 68 — Artigo revisado por pares, porém a evidência é explicitamente classificada como preliminar e tentativa pelos próprios autores.",
+      "1321": "PUBLICAR (80.5)\nNota 80: publicar.\nIA: A pesquisa merece publicação por apresentar um resultado fascinante e acessível: ter alterações no cérebro aos 100 anos é quase inevitável, mas a demência não é. Ao identificar que apenas a patologia LATE-NC e os emaranhados de tau são os verdadeiros vilões do declínio cognitivo nessa idade extrema, o trabalho traz clareza científica relevante com alto rigor metodológico.\nTriagem: curiosidade 85 (Investiga as causas neuropatológicas do declínio cognitivo em centenários, revelando segredos do envelhecimento cerebral.).\nPotencial de curiosidade: 80 — O achado é contraintuitivo e desperta grande interesse ao revelar que idosos centenários sem demência também possuem cérebros repletos de alterações neuropatológicas.\nRelevância científica: 85 — Estudo de coorte clinicopatológico longitudinal robusto baseado em autópsias de 104 centenários acompanhados por uma média de 11,4 anos.\nGrau de novidade: 75 — Esclarece de forma precisa quais lesões específicas (LATE-NC e tau) conduzem ao declínio cognitivo nos mais velhos, isolando-as de patologias vasculares e amiloides quase universais nessa faixa etária.\nPotencial de impacto: 78 — Orienta futuras estratégias de prevenção e terapias focadas em LATE-NC e tau para idosos de idade avançada, além de impulsionar pesquisas sobre resiliência cognitiva.\nQualidade das evidências: 85 — Pesquisa publicada na Neurology, revisada por pares, apoiada em dados histopatológicos detalhados e acompanhamento clínico anualizado.",
+      "1329": "PUBLICAR (83.7)\nNota 84: publicar.\nIA: O estudo deve ser aceito para publicação. Ele demonstra um mecanismo biológico plausível para a neurodinâmica darwiniana, conectando neurociência teórica, otimização e evolução de forma surpreendente. Por ser um trabalho revisado por pares publicado no PNAS com alto apelo conceitual, atende perfeitamente ao rigor e ao fator de curiosidade da UFABC Science.\nTriagem: curiosidade 88 (Demonstra um mecanismo neural que replica sinais no cérebro para resolver problemas por seleção estilo darwiniana.).\nPotencial de curiosidade: 85 — A proposta de que o cérebro utiliza seleção e variação darwiniana em padrões elétricos neurais para resolver problemas é um conceito altamente fascinante para o público.\nRelevância científica: 85 — Trabalho teoricamente robusto publicado no PNAS, oferecendo um mecanismo neurobiológico plausível para sustentar a hipótese da neurodinâmica darwiniana.\nGrau de novidade: 82 — Demonstra a replicação de informação neural sem requerer plasticidade sináptica ou uma chave de código compartilhada, desafiando concepções prévias.\nPotencial de impacto: 80 — Oferece um novo princípio computacional para entender a cognição e a memória, com potencial de inspirar algoritmos de otimização em inteligência artificial.\nQualidade das evidências: 85 — Estudo computacional rigoroso e revisado por pares em periódico científico de alto prestígio.",
+      "1447": "PRIORIDADE MÁXIMA (87.8)\nNota 88: prioridade máxima.\nIA: A pesquisa merece publicação por apresentar evidências diretas inéditas obtidas pelas missões Chang'e-4 e Chang'e-6, que permitiram datar o impacto da bacia South Pole–Aitken em aproximadamente 4,34 bilhões de anos. A combinação de amostras físicas e medições in situ traz rigor extremo e responde a perguntas fundamentais sobre a formação da Lua, atendendo plenamente ao critério de curiosidade e relevância da UFABC Science.\nTriagem: curiosidade 85 (Utiliza amostras inéditas da Lua trazidas por missões espaciais para revelar a história de evolução do polo sul lunar.).\nPotencial de curiosidade: 85 — Desperta grande fascínio ao revelar eventos ocorridos há mais de 4 bilhões de anos no lado oculto da Lua a partir de amostras físicas recém-trazidas à Terra.\nRelevância científica: 92 — Fornece a primeira verificação em solo da cronologia e evolução da bacia South Pole–Aitken, resolvendo questões fundamentais da história lunar.\nGrau de novidade: 88 — Trata-se da primeira análise direta combining dados in situ da Chang’e-4 e amostras da Chang’e-6 para datar o impacto original da bacia.\nPotencial de impacto: 85 — Reformula os modelos da evolução geológica precoce da Lua e da dinâmica de impactos no Sistema Solar primordial.\nQualidade das evidências: 90 — Estudo publicado na Science Advances, revisado por pares, baseado em medições diretas e análise de amostras trazidas da Lua."
+    },
+    "ai_provider": "openai_compatible",
+    "articles_selected": 10,
+    "contents_generated": 0,
+    "verification_passed": 0,
+    "verification_warning": 0,
+    "verification_failed": 0,
+    "generation_skipped": {
+      "aguardando_curadoria": 1393,
+      "informacao_insuficiente": 56,
+      "ja_aprovado": 6,
+      "rejeitado_pela_curadoria": 17,
+      "sem_alteracoes": 1,
+      "limite_de_processamento": 11
+    },
+    "markdown_files": []
+  },
+  "errors": [
+    "artigo 549: Provedor indisponível: HTTP 503",
+    "artigo 1447: Provedor indisponível: HTTP 429",
+    "artigo 157: Provedor indisponível: HTTP 429",
+    "artigo 155: Provedor indisponível: HTTP 429",
+    "artigo 117: Provedor indisponível: HTTP 429",
+    "artigo 946: Provedor indisponível: HTTP 429",
+    "artigo 279: Provedor indisponível: HTTP 429",
+    "artigo 1321: Provedor indisponível: HTTP 429",
+    "artigo 649: Provedor indisponível: HTTP 429",
+    "artigo 645: Provedor indisponível: HTTP 429"
+  ],
+  "messages": []
+}

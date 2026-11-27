@@ -1,0 +1,59 @@
+{
+  "run_id": "81ac8f124f32",
+  "status": "success",
+  "started_at": "2026-11-27T19:48:06+00:00",
+  "duration_seconds": 651.92,
+  "parameters": {
+    "days": 7,
+    "sources": [
+      "openalex",
+      "pubmed",
+      "arxiv",
+      "crossref"
+    ],
+    "max_articles": null,
+    "generation_limit": 10,
+    "steps": [
+      "curate",
+      "generate"
+    ],
+    "trigger": "schedule",
+    "start_date": null,
+    "end_date": null
+  },
+  "stats": {
+    "sources_consulted": [],
+    "curation_backlog": 10,
+    "ai_provider": "openai_compatible",
+    "articles_selected": 10,
+    "contents_generated": 10,
+    "verification_passed": 5,
+    "verification_warning": 5,
+    "verification_failed": 0,
+    "generation_skipped": {
+      "aguardando_curadoria": 1393,
+      "informacao_insuficiente": 56,
+      "ja_aprovado": 10,
+      "rejeitado_pela_curadoria": 17,
+      "sem_alteracoes": 5,
+      "bloqueado_por_verificacao": 2,
+      "limite_de_processamento": 1
+    },
+    "markdown_files": [
+      "persist/data/editorial/pending/article-1039.md",
+      "persist/data/editorial/pending/article-1329.md",
+      "persist/data/editorial/pending/article-1035.md",
+      "persist/data/editorial/pending/article-1038.md",
+      "persist/data/editorial/pending/article-675.md",
+      "persist/data/editorial/pending/article-112.md",
+      "persist/data/editorial/pending/article-492.md",
+      "persist/data/editorial/pending/article-110.md",
+      "persist/data/editorial/pending/article-615.md",
+      "persist/data/editorial/pending/article-423.md"
+    ]
+  },
+  "errors": [],
+  "messages": [
+    "Curadoria adiada: 10 artigo(s) já curados aguardam redação; a cota de IA desta execução fica para a redação."
+  ]
+}

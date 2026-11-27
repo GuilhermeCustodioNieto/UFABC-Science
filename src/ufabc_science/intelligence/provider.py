@@ -170,6 +170,9 @@ class OpenAICompatibleProvider(AIProvider):
         self.min_interval = min_interval
         self._clock = clock
         self._last_request: float | None = None
+        # Cota esgotada (HTTP 429 mesmo após todas as esperas): na cota gratuita do Gemini
+        # isso é o limite diário. Novas chamadas só gastariam minutos de espera e falhariam.
+        self.quota_exhausted = False
         self.temperature = temperature
         self.max_tokens = max_tokens
         self._sleep = sleep
@@ -236,6 +239,8 @@ class OpenAICompatibleProvider(AIProvider):
     def generate_structured(
         self, prompt: str, response_schema: dict[str, Any], *, system: str | None = None
     ) -> AIResponse:
+        if self.quota_exhausted:
+            raise AIProviderError("Provedor indisponível: cota de requisições esgotada (HTTP 429)")
         body = self._body(prompt, response_schema, system)
         last_error = "erro desconhecido"
         for attempt in range(self.max_retries + 1):
@@ -274,6 +279,12 @@ class OpenAICompatibleProvider(AIProvider):
                     "IA: falha transitória (%s); nova tentativa em %.0fs", last_error, delay
                 )
                 self._sleep(delay)
+        if response is not None and response.status_code == 429:
+            self.quota_exhausted = True
+            logger.error(
+                "IA: cota de requisições esgotada; as demais chamadas desta execução "
+                "não serão feitas."
+            )
         raise AIProviderError(f"Provedor indisponível: {last_error}")
 
 

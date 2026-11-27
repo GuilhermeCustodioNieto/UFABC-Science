@@ -67,6 +67,14 @@ execução passará a ocorrer às 09:00 locais nesse período (ajuste para `0 10
 manter 08:00). Execuções agendadas podem atrasar em horários de pico e são desativadas pelo
 GitHub após 60 dias sem atividade no repositório.
 
+**Recuperação diária (terça a sexta, `cron: "0 11 * * 2-5"`).** A cota gratuita do Gemini
+permite poucas dezenas de chamadas por dia, e a curadoria de segunda pode gastá-la toda antes
+da redação (todas as matérias falham com HTTP 429). Nesses dias a rotina roda só
+`curate,generate`: a curadoria é adiada enquanto houver artigos curados suficientes na fila
+(`GENERATION_LIMIT`), e a cota do dia vai para a redação. Quando o provedor responde 429 mesmo
+após as esperas, a execução para de chamar a IA e salva o que já fez. Para disparar essa
+recuperação sem a interface do GitHub, altere `.github/pipeline-trigger` e faça commit na `main`.
+
 Por padrão (`steps: auto`), rascunhos só são gerados se houver um provedor de IA real
 configurado (`AI_PROVIDER` diferente de `mock`); caso contrário a rotina coleta, classifica e
 pontua.

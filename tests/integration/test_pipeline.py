@@ -228,3 +228,41 @@ def test_collection_window_covers_gap_since_last_successful_collection(
     # Sem lacuna, a janela padrão (days) é usada.
     again = run(workspace, fake_apis, steps=("collect",))
     assert again.stats["collection_window"] == ["2026-11-02", TODAY.isoformat()]
+
+
+def test_curation_is_postponed_while_curated_backlog_awaits_generation(
+    workspace: Workspace, fake_apis: FakeApis, monkeypatch
+) -> None:
+    """A cota de IA é pequena: com fila curada cheia, ela vai para a redação."""
+    from types import SimpleNamespace
+
+    from ufabc_science.intelligence.provider import MockProvider
+    from ufabc_science.pipeline import runner
+
+    class RealishProvider(MockProvider):
+        name = "openai_compatible"
+
+    def no_curation(*args: object, **kwargs: object) -> None:
+        raise AssertionError("curadoria não deveria rodar com a fila cheia")
+
+    monkeypatch.setattr(runner, "curate_articles", no_curation)
+    monkeypatch.setattr(
+        runner, "select_for_generation", lambda *a, **k: SimpleNamespace(selected=[1, 2, 3])
+    )
+    monkeypatch.setattr(runner, "generate_contents", lambda *a, **k: runner_generation_stub())
+    summary = run_pipeline(
+        workspace.settings,
+        workspace.factory,
+        params(steps=("curate", "generate")),
+        transport=fake_apis.transport(),
+        today=TODAY,
+        provider=RealishProvider(),
+    )
+    assert summary.stats["curation_backlog"] == 3
+    assert any("Curadoria adiada" in m for m in summary.messages)
+
+
+def runner_generation_stub():
+    from ufabc_science.intelligence.generation import GenerationSummary
+
+    return GenerationSummary()

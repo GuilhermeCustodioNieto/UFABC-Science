@@ -8,9 +8,18 @@
 # ocorrerá às 09:00 locais nesse período (ver docs/AUTOMATION_GUIDE.md).
 name: Pipeline semanal
 
+# Cota gratuita do Gemini: poucas dezenas de chamadas por dia. A execução de segunda
+# coleta e cura; a curadoria sozinha pode gastar a cota do dia. As execuções de terça a
+# sexta (mesmo horário) só curam (se faltar material) e redigem, cada uma com a cota nova
+# do dia, até esvaziar a fila de artigos curados.
+# Um commit que altere .github/pipeline-trigger na main dispara a mesma recuperação.
 on:
   schedule:
     - cron: "0 11 * * 1"
+    - cron: "0 11 * * 2-5"
+  push:
+    branches: [main]
+    paths: [".github/pipeline-trigger"]
   workflow_dispatch:
     inputs:
       days:
@@ -90,6 +99,7 @@ jobs:
       INPUT_MAX_ARTICLES: ${{ inputs.max_articles }}
       INPUT_GENERATION_LIMIT: ${{ inputs.generation_limit }}
       INPUT_STEPS: ${{ inputs.steps || 'auto' }}
+      SCHEDULE_CRON: ${{ github.event.schedule }}
     steps:
       - name: Código
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -123,7 +133,14 @@ jobs:
           steps="$INPUT_STEPS"
           if [ "$steps" = "auto" ]; then
             # Rascunhos só são gerados quando há um provedor de IA real configurado.
-            if [ "$AI_PROVIDER" = "mock" ]; then steps="collect,enrich,classify,score"; else steps="all"; fi
+            if [ "$AI_PROVIDER" = "mock" ]; then
+              steps="collect,enrich,classify,score"
+            elif [ "$GITHUB_EVENT_NAME" = "push" ] || [ "$SCHEDULE_CRON" = "0 11 * * 2-5" ]; then
+              # Recuperação: usa a cota de IA do dia para redigir a fila já curada.
+              steps="curate,generate"
+            else
+              steps="all"
+            fi
           fi
           args=(--trigger "${GITHUB_EVENT_NAME}" --steps "$steps")
           [ -n "$INPUT_DAYS" ] && args+=(--days "$INPUT_DAYS")

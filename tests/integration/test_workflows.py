@@ -45,7 +45,11 @@ def test_workflow_is_valid_and_hardened(name: str) -> None:
 def test_weekly_pipeline_schedule_and_manual_parameters() -> None:
     workflow = load("weekly_pipeline.yml")
     triggers = workflow["on"]
-    assert triggers["schedule"] == [{"cron": "0 11 * * 1"}]  # segunda, 08:00 em São Paulo
+    # Segunda, 08:00 em São Paulo (coleta completa); terça a sexta, recuperação da redação.
+    assert triggers["schedule"] == [{"cron": "0 11 * * 1"}, {"cron": "0 11 * * 2-5"}]
+    assert triggers["push"] == {"branches": ["main"], "paths": [".github/pipeline-trigger"]}
+    text = (WORKFLOWS / "weekly_pipeline.yml").read_text(encoding="utf-8")
+    assert 'steps="curate,generate"' in text
     inputs = triggers["workflow_dispatch"]["inputs"]
     assert {"days", "sources", "max_articles", "generation_limit", "steps"} <= set(inputs)
     assert workflow["permissions"] == {"contents": "write"}

@@ -34,7 +34,11 @@ from ufabc_science.domain.enums import RunStatus
 from ufabc_science.domain.models import PipelineRun, utcnow
 from ufabc_science.infrastructure.database import session_scope
 from ufabc_science.intelligence.base import AIProvider
-from ufabc_science.intelligence.generation import generate_contents
+from ufabc_science.intelligence.generation import (
+    DEFAULT_WORD_LIMITS,
+    generate_contents,
+    select_for_generation,
+)
 from ufabc_science.intelligence.provider import build_provider
 from ufabc_science.pipeline.lock import PipelineLock
 from ufabc_science.processing.classification import classify_articles, load_rules
@@ -347,6 +351,27 @@ def _execute(
             messages.append(
                 "Curadoria por IA não executada (provedor mock): a seleção usa o pré-filtro "
                 "heurístico."
+            )
+            return
+        # A cota gratuita de IA é pequena (dezenas de chamadas por dia). Se já há artigos
+        # curados suficientes esperando redação, a cota vai para a redação, não para curar
+        # mais artigos que ficariam sem texto.
+        with session_scope(factory) as session:
+            backlog = len(
+                select_for_generation(
+                    session,
+                    limit=params.generation_limit,
+                    min_abstract_words=settings.min_abstract_words,
+                    word_limits={**DEFAULT_WORD_LIMITS, **(settings.generation_word_limits or {})},
+                    min_score=settings.curation_min_score,
+                    require_ai_curation=True,
+                ).selected
+            )
+        stats["curation_backlog"] = backlog
+        if "generate" in params.steps and backlog >= params.generation_limit:
+            messages.append(
+                f"Curadoria adiada: {backlog} artigo(s) já curados aguardam redação; a cota "
+                "de IA desta execução fica para a redação."
             )
             return
         with session_scope(factory) as session:

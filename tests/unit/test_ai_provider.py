@@ -181,6 +181,42 @@ def test_rate_limit_waits_longer_and_respects_retry_after() -> None:
     assert waits == [37.0, 40.0]  # Retry-After; depois 20 s x 2^1
 
 
+def test_exhausted_quota_stops_further_calls() -> None:
+    calls: list[int] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(1)
+        return httpx.Response(429)
+
+    provider = OpenAICompatibleProvider(
+        base_url="http://localhost:11434/v1",
+        model="m",
+        transport=httpx.MockTransport(handler),
+        sleep=lambda _: None,
+        max_retries=2,
+    )
+    with pytest.raises(AIProviderError, match="429"):
+        provider.generate_structured("p", {})
+    assert provider.quota_exhausted
+    assert len(calls) == 3
+    with pytest.raises(AIProviderError, match="cota"):
+        provider.generate_structured("p", {})
+    assert len(calls) == 3  # nenhuma nova requisição depois da cota esgotada
+
+
+def test_transient_503_does_not_mark_quota_exhausted() -> None:
+    provider = OpenAICompatibleProvider(
+        base_url="http://localhost:11434/v1",
+        model="m",
+        transport=httpx.MockTransport(lambda request: httpx.Response(503)),
+        sleep=lambda _: None,
+        max_retries=1,
+    )
+    with pytest.raises(AIProviderError):
+        provider.generate_structured("p", {})
+    assert not provider.quota_exhausted
+
+
 def test_minimum_interval_between_calls() -> None:
     waits: list[float] = []
     now = {"t": 100.0}

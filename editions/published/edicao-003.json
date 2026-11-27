@@ -1,0 +1,55 @@
+{
+  "schema": "ufabc-science/edition-publication@1",
+  "edition_number": 3,
+  "slug": "edicao-003",
+  "title": "UFABC Science — Edição 003",
+  "week": "2026-W48",
+  "start_date": "2026-11-23",
+  "end_date": "2026-11-29",
+  "published_at": "2026-11-27T01:07:35.408314+00:00",
+  "published_by": "Publicação automática",
+  "introduction": "Nesta edição, reunimos 4 pesquisas recentes em Medicina e Biotecnologia e Intersecções Científicas.\n\nOs resumos foram escritos por inteligência artificial a partir dos dados públicos de cada estudo e só entraram na edição depois de passar por todas as checagens automáticas de fidelidade (números, autores, DOI, link e identificação de preprints). **Não houve revisão humana.** Consulte sempre a pesquisa original pelo link em cada texto.",
+  "introduction_reviewer": "Publicação automática",
+  "items": [
+    {
+      "position": 1,
+      "article_id": 649,
+      "editorial_section": "medicina-e-biotecnologia",
+      "review_id": 38,
+      "content_hash": "32e45bb7c0cce18902e984a0a328e89d5d095cadac9a7b2fe20de35673999492",
+      "reviewer": "Publicação automática",
+      "doi": "10.1073/pnas.2618571123",
+      "title": "Selectively disrupting lysine acetyltransferase p300 and ZEB1 interaction prevents tumor progression while enhancing antitumor immunity."
+    },
+    {
+      "position": 2,
+      "article_id": 157,
+      "editorial_section": "interseccoes-cientificas",
+      "review_id": 34,
+      "content_hash": "66345e26fc9efe25cd3b8f83d168268c794541a20fe14449f99a7f92604dcd01",
+      "reviewer": "Publicação automática",
+      "doi": "10.1016/j.cell.2026.08.012",
+      "title": "Single-cell multimodal atlas reveals regulatory programs in the human brain."
+    },
+    {
+      "position": 3,
+      "article_id": 155,
+      "editorial_section": "interseccoes-cientificas",
+      "review_id": 33,
+      "content_hash": "fd10e06587415705c44524c9b10c8004d29bb0646521b16ad4509a28d15bc203",
+      "reviewer": "Publicação automática",
+      "doi": "10.1038/s41467-026-79098-0",
+      "title": "Extinction risks in deep-sea populations revealed by genomic data and ecological niche modeling."
+    },
+    {
+      "position": 4,
+      "article_id": 946,
+      "editorial_section": "interseccoes-cientificas",
+      "review_id": 39,
+      "content_hash": "5c294401536f1e549b749ae7525168e47de96cb1f155e1bfd6fb4228f1b4e2ab",
+      "reviewer": "Publicação automática",
+      "doi": "10.1073/pnas.2534118123",
+      "title": "Automating inequality? Gender bias in AI-mediated labor markets"
+    }
+  ]
+}
